@@ -6,6 +6,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setupDatabase } from "@/server/db/init";
 
+export async function GET(req: NextRequest) {
+  return POST(req);
+}
+
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-setup-secret");
   if (secret !== (process.env.SETUP_SECRET ?? "planty-setup")) {
