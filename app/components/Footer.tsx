@@ -57,15 +57,36 @@ export default function Footer() {
                 </motion.a>
               ))}
             </div>
-            <div className="flex items-center gap-2 text-green-200/50 text-sm">
+            <motion.a
+              href="mailto:cchandhan021@gmail.com"
+              whileHover={{ x: 2 }}
+              className="flex items-center gap-2 text-green-300 hover:text-green-400 text-sm transition-colors"
+            >
               <Mail size={14} />
-              hello@planty.in
-            </div>
+              cchandhan021@gmail.com
+            </motion.a>
           </div>
         </div>
 
-        <div className="border-t border-white/5 pt-6 text-center text-green-200/30 text-xs">
-          © {new Date().getFullYear()} Planty. Grown with 🌿 and love.
+        <div className="border-t border-white/10 pt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center space-y-2"
+          >
+            <p className="text-green-200/40 text-sm">
+              © {new Date().getFullYear()} Planty. Grown with 
+              <span className="text-red-400 mx-1 inline-block animate-pulse">❤️</span>
+              by
+              <span className="ml-1 font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                Chandu
+              </span>
+            </p>
+            <p className="text-green-200/30 text-xs">
+              Bringing nature, one plant at a time 🌿
+            </p>
+          </motion.div>
         </div>
       </div>
     </footer>
