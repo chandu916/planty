@@ -96,8 +96,12 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     await db.createCollection("users", { validator: usersValidator });
     log.push("✓ Created collection: users");
   } else {
-    await db.command({ collMod: "users", validator: usersValidator, validationLevel: "moderate" });
-    log.push("✓ Verified collection: users (validator updated)");
+    try {
+      await db.command({ collMod: "users", validator: usersValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: users (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection users exists (validator update skipped — insufficient permissions)");
+    }
   }
 
   const usersCol = db.collection("users");
@@ -111,8 +115,12 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     await db.createCollection("admins", { validator: adminsValidator });
     log.push("✓ Created collection: admins");
   } else {
-    await db.command({ collMod: "admins", validator: adminsValidator, validationLevel: "moderate" });
-    log.push("✓ Verified collection: admins (validator updated)");
+    try {
+      await db.command({ collMod: "admins", validator: adminsValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: admins (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection admins exists (validator update skipped — insufficient permissions)");
+    }
   }
 
   const adminsCol = db.collection("admins");
@@ -125,8 +133,12 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     await db.createCollection("orders", { validator: ordersValidator });
     log.push("✓ Created collection: orders");
   } else {
-    await db.command({ collMod: "orders", validator: ordersValidator, validationLevel: "moderate" });
-    log.push("✓ Verified collection: orders (validator updated)");
+    try {
+      await db.command({ collMod: "orders", validator: ordersValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: orders (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection orders exists (validator update skipped — insufficient permissions)");
+    }
   }
 
   const ordersCol = db.collection("orders");
@@ -141,8 +153,12 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     await db.createCollection("carts", { validator: cartsValidator });
     log.push("✓ Created collection: carts");
   } else {
-    await db.command({ collMod: "carts", validator: cartsValidator, validationLevel: "moderate" });
-    log.push("✓ Verified collection: carts (validator updated)");
+    try {
+      await db.command({ collMod: "carts", validator: cartsValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: carts (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection carts exists (validator update skipped — insufficient permissions)");
+    }
   }
 
   const cartsCol = db.collection("carts");
