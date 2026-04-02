@@ -12,7 +12,6 @@ import {
   Leaf,
   CheckCircle,
   AlertCircle,
-  ArrowLeft,
   Loader2,
   Lock,
   Eye,
@@ -33,6 +32,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import BackButton from "@/app/components/BackButton";
 import type { User as UserType } from "@/lib/schema";
 
 interface OrderItem {
@@ -248,7 +248,7 @@ export default function ProfilePageClient() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-black">
+    <main className="flex flex-col min-h-screen bg-transparent">
       <Navbar />
 
       <div className="flex-1 pt-24 pb-16 px-4 sm:px-6 max-w-2xl mx-auto w-full">
@@ -258,13 +258,7 @@ export default function ProfilePageClient() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-green-400/70 hover:text-green-400 text-sm mb-4 transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Back to home
-          </Link>
+          <BackButton fallbackHref="/" label="Back" className="mb-4" />
           <h1 className="text-3xl sm:text-4xl font-bold text-white flex items-center gap-3">
             <User className="text-green-400" size={32} />
             My Profile

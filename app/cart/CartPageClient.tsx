@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Minus, Plus, Trash2, ShoppingBag, Leaf, ArrowLeft, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Leaf, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useCartStore } from "@/lib/cartStore";
 import { useUserStore } from "@/lib/userStore";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import BackButton from "@/app/components/BackButton";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 
@@ -97,7 +98,7 @@ export default function CartPageClient() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-black">
+    <main className="flex flex-col min-h-screen bg-transparent">
       <Navbar />
 
       <div className="flex-1 pt-24 pb-16 px-4 sm:px-6 max-w-7xl mx-auto w-full">
@@ -107,13 +108,7 @@ export default function CartPageClient() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-green-400/70 hover:text-green-400 text-sm mb-4 transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Continue shopping
-          </Link>
+          <BackButton fallbackHref="/" label="Back" className="mb-4" />
           <h1 className="text-3xl sm:text-4xl font-bold text-white flex items-center gap-3">
             <ShoppingBag className="text-green-400" size={32} />
             Your Cart
@@ -234,6 +229,7 @@ export default function CartPageClient() {
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-2">
                         <motion.button
+                          data-sound="count-down"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -245,6 +241,7 @@ export default function CartPageClient() {
                           {item.quantity}
                         </span>
                         <motion.button
+                          data-sound="count-up"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
@@ -263,6 +260,7 @@ export default function CartPageClient() {
 
                       {/* Remove */}
                       <motion.button
+                        data-sound="delete"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => removeItem(item.id)}

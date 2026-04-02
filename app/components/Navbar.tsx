@@ -8,6 +8,8 @@ import { useCartStore } from "@/lib/cartStore";
 import { useUserStore } from "@/lib/userStore";
 import { useRouter } from "next/navigation";
 
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+
 export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -23,6 +25,36 @@ export default function Navbar() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted || !isLoggedIn) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const resetInactivityTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        logout();
+        router.push("/login");
+      }, INACTIVITY_TIMEOUT_MS);
+    };
+
+    const events: Array<keyof WindowEventMap> = [
+      "mousemove",
+      "keydown",
+      "click",
+      "scroll",
+      "touchstart",
+    ];
+
+    events.forEach((event) => window.addEventListener(event, resetInactivityTimer));
+    resetInactivityTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
+    };
+  }, [mounted, isLoggedIn, logout, router]);
 
   const handleLogout = () => {
     logout();
@@ -117,11 +149,13 @@ export default function Navbar() {
 
         {/* Login / User greeting / Logout */}
         {mounted ? (
-          isLoggedIn && user ? (
+          isLoggedIn ? (
             <div className="flex items-center gap-2">
-              <span className="hidden sm:block text-green-300 text-sm font-medium">
-                Hi, {user.fullName.split(" ")[0]}
-              </span>
+              {user ? (
+                <span className="hidden sm:block text-green-300 text-sm font-medium">
+                  Hi, {user.fullName.split(" ")[0]}
+                </span>
+              ) : null}
               <motion.button
                 onClick={handleLogout}
                 whileHover={{ scale: 1.05 }}
@@ -136,6 +170,8 @@ export default function Navbar() {
           ) : (
             <Link href="/login">
               <motion.div
+                data-bubble="true"
+                data-sound="auth"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition-colors shadow-lg shadow-green-500/30"

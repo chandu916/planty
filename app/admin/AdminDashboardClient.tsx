@@ -27,6 +27,7 @@ import {
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStore } from "@/lib/adminStore";
+import BackButton from "@/app/components/BackButton";
 
 interface AdminUser {
   _id: string;
@@ -204,7 +205,7 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   if (!isLoggedIn) return null;
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-transparent text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -226,6 +227,8 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <BackButton fallbackHref="/" label="Back" className="mb-6" />
+
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[

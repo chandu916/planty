@@ -82,6 +82,7 @@ export default function Hero() {
         >
           <motion.a
             href="#plants"
+            data-bubble="true"
             whileHover={{ scale: 1.06, boxShadow: "0 0 32px rgba(74,222,128,0.5)" }}
             whileTap={{ scale: 0.96 }}
             className="px-8 py-4 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base transition-all shadow-xl shadow-green-500/30 flex items-center gap-2"
@@ -90,7 +91,8 @@ export default function Hero() {
             Explore Plants
           </motion.a>
           <motion.a
-            href="#register"
+            href="/register"
+            data-bubble="true"
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.96 }}
             className="px-8 py-4 rounded-full border border-green-500/50 hover:border-green-400 text-green-300 hover:text-green-200 font-semibold text-base transition-all backdrop-blur-sm"

@@ -66,7 +66,7 @@ export default function AdminUsersClient({ users }: { users: AdminUser[] }) {
   };
 
   return (
-    <main className="min-h-screen bg-black py-10 px-4 sm:px-8">
+    <main className="min-h-screen bg-transparent py-10 px-4 sm:px-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-10">
         <div className="flex items-center justify-between flex-wrap gap-4">

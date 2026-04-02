@@ -12,10 +12,178 @@
 }
 
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
+}
+
+.app-fixed-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 8% 12%, rgba(106, 169, 255, 0.35), transparent 60%),
+    radial-gradient(1000px 680px at 88% 16%, rgba(72, 214, 180, 0.32), transparent 58%),
+    radial-gradient(920px 700px at 50% 86%, rgba(32, 116, 209, 0.26), transparent 62%),
+    linear-gradient(160deg, #061229 0%, #08192a 35%, #0b2330 65%, #0d2b35 100%);
+}
+
+.app-fixed-bg::before,
+.app-fixed-bg::after {
+  content: "";
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+}
+
+.app-fixed-bg::before {
+  background:
+    radial-gradient(500px 240px at 20% 30%, rgba(255, 255, 255, 0.12), transparent 70%),
+    radial-gradient(430px 220px at 74% 66%, rgba(255, 255, 255, 0.1), transparent 70%);
+  filter: blur(42px);
+  animation: bgFloat 16s ease-in-out infinite alternate;
+}
+
+.app-fixed-bg::after {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.14;
+}
+
+@keyframes bgFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(0, -14px, 0) scale(1.03);
+  }
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a[data-bubble="true"],
+div[data-bubble="true"],
+[data-bubble="true"] {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  isolation: isolate;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(190, 236, 255, 0.28) !important;
+  box-shadow:
+    0 12px 28px rgba(37, 117, 169, 0.32),
+    0 2px 5px rgba(12, 46, 74, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -8px 14px rgba(6, 24, 40, 0.38);
+  transition: transform 100ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 180ms ease, filter 180ms ease;
+  will-change: transform, box-shadow;
+}
+
+button::before,
+input[type="button"]::before,
+input[type="submit"]::before,
+input[type="reset"]::before,
+[data-bubble="true"]::before,
+a[data-bubble="true"]::before,
+div[data-bubble="true"]::before,
+[data-bubble="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(140% 90% at 18% 12%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 38%),
+    linear-gradient(180deg, rgba(190, 239, 255, 0.22), rgba(111, 202, 244, 0.08) 55%, rgba(18, 94, 141, 0.16));
+  opacity: 0.92;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+button::after,
+input[type="button"]::after,
+input[type="submit"]::after,
+input[type="reset"]::after,
+[data-bubble="true"]::after,
+a[data-bubble="true"]::after,
+div[data-bubble="true"]::after,
+[data-bubble="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%) scale(0.06);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.68) 0%, rgba(177, 230, 255, 0.18) 38%, rgba(255, 255, 255, 0) 72%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover,
+[data-bubble="true"]:hover,
+a[data-bubble="true"]:hover,
+div[data-bubble="true"]:hover,
+[data-bubble="true"]:hover {
+  box-shadow:
+    0 16px 34px rgba(63, 140, 194, 0.42),
+    0 4px 8px rgba(9, 41, 69, 0.45),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -10px 16px rgba(7, 32, 52, 0.42);
+  filter: saturate(1.15) brightness(1.03);
+  transform: translateY(-1px);
+}
+
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active,
+[data-bubble="true"]:active,
+a[data-bubble="true"]:active,
+div[data-bubble="true"]:active,
+[data-bubble="true"]:active {
+  transform: translateY(2px) scale(0.955);
+  box-shadow:
+    0 5px 10px rgba(45, 117, 170, 0.34),
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    inset 0 -9px 14px rgba(9, 33, 55, 0.5);
+  filter: saturate(1.08) brightness(0.99);
+}
+
+button:active::after,
+input[type="button"]:active::after,
+input[type="submit"]:active::after,
+input[type="reset"]:active::after,
+[data-bubble="true"]:active::after,
+a[data-bubble="true"]:active::after,
+div[data-bubble="true"]:active::after,
+[data-bubble="true"]:active::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(6.2);
+  transition: transform 220ms ease-out, opacity 240ms ease-out;
+}
+
+/* Make glass effect more visible over Tailwind utility backgrounds */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a[data-bubble="true"],
+div[data-bubble="true"],
+[data-bubble="true"] {
+  box-shadow:
+    0 16px 34px rgba(63, 140, 194, 0.42),
+    0 4px 8px rgba(9, 41, 69, 0.45),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -10px 16px rgba(7, 32, 52, 0.42) !important;
 }
 
 /* Smooth scrolling */

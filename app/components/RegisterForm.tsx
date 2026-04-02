@@ -311,6 +311,7 @@ export default function RegisterForm() {
                 )}
 
                 <motion.button
+                  data-sound="auth"
                   type="submit"
                   disabled={status === "loading"}
                   whileHover={{ scale: status === "loading" ? 1 : 1.02, boxShadow: "0 0 30px rgba(74,222,128,0.4)" }}

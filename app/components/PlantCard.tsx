@@ -79,6 +79,7 @@ export default function PlantCard({
       <div className="flex items-center justify-between">
         <span className="text-green-300 font-bold text-lg">₹{plant.price}</span>
         <button
+          data-sound="add-cart"
           onClick={handleAdd}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 border ${
             added || inCart

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStore } from "@/lib/adminStore";
 import { Lock, Mail, Eye, EyeOff, Leaf, AlertCircle, Loader2 } from "lucide-react";
+import BackButton from "@/app/components/BackButton";
 
 export default function AdminLoginClient() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function AdminLoginClient() {
   };
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center px-4">
+    <main className="min-h-screen bg-transparent flex items-center justify-center px-4">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/40 via-black to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(74,222,128,0.06)_0%,_transparent_70%)]" />
@@ -52,8 +53,10 @@ export default function AdminLoginClient() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-md pt-14"
       >
+        <BackButton fallbackHref="/" label="Back" className="absolute left-0 top-0" />
+
         {/* Logo */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <motion.div

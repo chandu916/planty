@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Leaf, Lock, Mail, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import BackButton from "@/app/components/BackButton";
 import { useUserStore } from "@/lib/userStore";
 
 export default function LoginPageClient() {
@@ -45,9 +46,11 @@ export default function LoginPageClient() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4">
       {/* Background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(74,222,128,0.06)_0%,_transparent_70%)]" />
+
+      <BackButton fallbackHref="/" label="Back" className="absolute left-4 top-4 z-20" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -123,6 +126,7 @@ export default function LoginPageClient() {
 
             {/* Submit */}
             <motion.button
+              data-sound="auth"
               type="submit"
               disabled={status === "loading"}
               whileHover={{ scale: 1.02 }}
@@ -142,7 +146,7 @@ export default function LoginPageClient() {
 
           <div className="mt-6 text-center text-sm text-green-300/50">
             Don&apos;t have an account?{" "}
-            <Link href="/#register" className="text-green-400 hover:text-green-300 font-medium transition-colors">
+            <Link href="/register" className="text-green-400 hover:text-green-300 font-medium transition-colors">
               Register here
             </Link>
           </div>
