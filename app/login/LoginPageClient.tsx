@@ -47,17 +47,13 @@ export default function LoginPageClient() {
 
   return (
     <div className="min-h-screen bg-transparent flex items-center justify-center px-4">
-      {/* Background glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(74,222,128,0.06)_0%,_transparent_70%)]" />
-
-      <BackButton fallbackHref="/" label="Back" className="absolute left-4 top-4 z-20" />
-
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-md pt-14"
       >
+        <BackButton fallbackHref="/" label="Back" className="absolute left-0 top-0" />
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <Leaf size={28} className="text-green-400" />

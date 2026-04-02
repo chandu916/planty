@@ -11,74 +11,68 @@ import type { PlantCategory } from "@/lib/plants";
 const CATEGORY_THEMES: Record<
   string,
   {
-    pageBackground: string;
-    topGlow: string;
-    bottomGlow: string;
-    grainTint: string;
     accentText: string;
-    accentSoftText: string;
-    statGlow: string;
+    softText: string;
+    titleGlow: string;
+    heroMist: string;
+    gridMist: string;
+    badgeTone: string;
+    heroPanel: string;
   }
 > = {
   bonsai: {
-    pageBackground:
-      "radial-gradient(900px 520px at 10% 12%, rgba(244, 196, 48, 0.16), transparent 58%), radial-gradient(780px 500px at 84% 18%, rgba(49, 153, 117, 0.22), transparent 56%), radial-gradient(860px 620px at 48% 88%, rgba(24, 83, 65, 0.30), transparent 60%), linear-gradient(160deg, #0c1712 0%, #10251c 34%, #153027 66%, #1e392d 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(252, 211, 77, 0.16) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(34, 197, 94, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(242, 227, 182, 0.08)",
-    accentText: "text-amber-200",
-    accentSoftText: "text-emerald-200/70",
-    statGlow: "shadow-[0_0_36px_rgba(251,191,36,0.16)]",
+    accentText: "text-amber-100/90",
+    softText: "text-emerald-50/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(252,211,77,0.14)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(251,191,36,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(16,185,129,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(245,158,11,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(16,185,129,0.10), transparent 74%)",
+    badgeTone: "border-amber-200/15 bg-amber-100/[0.04]",
+    heroPanel: "border-amber-200/14 bg-amber-100/[0.035]",
   },
   flowering: {
-    pageBackground:
-      "radial-gradient(900px 520px at 14% 10%, rgba(255, 155, 194, 0.22), transparent 58%), radial-gradient(760px 520px at 88% 16%, rgba(236, 72, 153, 0.22), transparent 56%), radial-gradient(860px 680px at 52% 90%, rgba(111, 33, 87, 0.30), transparent 62%), linear-gradient(160deg, #190916 0%, #2a0d24 34%, #401236 66%, #58164a 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(255, 190, 214, 0.16) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(244, 114, 182, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(255, 214, 231, 0.08)",
-    accentText: "text-pink-100",
-    accentSoftText: "text-rose-100/70",
-    statGlow: "shadow-[0_0_36px_rgba(236,72,153,0.18)]",
+    accentText: "text-rose-100/90",
+    softText: "text-white/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(244,114,182,0.16)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(244,114,182,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(251,113,133,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(236,72,153,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(251,113,133,0.10), transparent 74%)",
+    badgeTone: "border-rose-200/15 bg-rose-100/[0.04]",
+    heroPanel: "border-rose-200/14 bg-rose-100/[0.035]",
   },
   water: {
-    pageBackground:
-      "radial-gradient(900px 520px at 10% 12%, rgba(125, 211, 252, 0.24), transparent 58%), radial-gradient(820px 540px at 88% 18%, rgba(45, 212, 191, 0.20), transparent 56%), radial-gradient(920px 700px at 48% 88%, rgba(21, 94, 117, 0.34), transparent 60%), linear-gradient(160deg, #04131d 0%, #082432 34%, #0b3140 66%, #11445a 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(186, 230, 253, 0.18) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(94, 234, 212, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(214, 241, 255, 0.08)",
-    accentText: "text-cyan-100",
-    accentSoftText: "text-teal-100/70",
-    statGlow: "shadow-[0_0_36px_rgba(34,211,238,0.18)]",
+    accentText: "text-teal-50/90",
+    softText: "text-cyan-50/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(103,232,249,0.16)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(34,211,238,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(45,212,191,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(34,211,238,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(45,212,191,0.10), transparent 74%)",
+    badgeTone: "border-cyan-200/15 bg-cyan-100/[0.04]",
+    heroPanel: "border-cyan-200/14 bg-cyan-100/[0.035]",
   },
   succulents: {
-    pageBackground:
-      "radial-gradient(900px 520px at 10% 10%, rgba(190, 242, 100, 0.20), transparent 56%), radial-gradient(820px 520px at 90% 20%, rgba(74, 222, 128, 0.20), transparent 56%), radial-gradient(840px 640px at 48% 88%, rgba(50, 91, 41, 0.32), transparent 60%), linear-gradient(160deg, #0d180b 0%, #152611 34%, #223616 66%, #31461f 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(236, 252, 203, 0.16) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(163, 230, 53, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(238, 255, 214, 0.08)",
-    accentText: "text-lime-100",
-    accentSoftText: "text-emerald-100/70",
-    statGlow: "shadow-[0_0_36px_rgba(132,204,22,0.18)]",
+    accentText: "text-lime-50/90",
+    softText: "text-emerald-50/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(163,230,53,0.15)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(163,230,53,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(74,222,128,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(132,204,22,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(74,222,128,0.10), transparent 74%)",
+    badgeTone: "border-lime-200/15 bg-lime-100/[0.04]",
+    heroPanel: "border-lime-200/14 bg-lime-100/[0.035]",
   },
   indoor: {
-    pageBackground:
-      "radial-gradient(900px 520px at 12% 12%, rgba(110, 231, 183, 0.18), transparent 58%), radial-gradient(820px 520px at 88% 18%, rgba(34, 197, 94, 0.18), transparent 56%), radial-gradient(900px 680px at 50% 88%, rgba(14, 69, 55, 0.32), transparent 60%), linear-gradient(160deg, #061510 0%, #0b221a 34%, #123026 66%, #1a4032 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(220, 252, 231, 0.16) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(74, 222, 128, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(221, 255, 234, 0.08)",
-    accentText: "text-emerald-100",
-    accentSoftText: "text-green-100/70",
-    statGlow: "shadow-[0_0_36px_rgba(16,185,129,0.18)]",
+    accentText: "text-emerald-50/90",
+    softText: "text-white/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(110,231,183,0.14)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(52,211,153,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(74,222,128,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(16,185,129,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(74,222,128,0.10), transparent 74%)",
+    badgeTone: "border-emerald-200/15 bg-emerald-100/[0.04]",
+    heroPanel: "border-emerald-200/14 bg-emerald-100/[0.035]",
   },
   herbs: {
-    pageBackground:
-      "radial-gradient(900px 520px at 10% 10%, rgba(253, 224, 71, 0.18), transparent 58%), radial-gradient(820px 520px at 90% 18%, rgba(163, 230, 53, 0.18), transparent 56%), radial-gradient(900px 680px at 50% 88%, rgba(74, 95, 28, 0.32), transparent 60%), linear-gradient(160deg, #171407 0%, #24210a 34%, #32320f 66%, #414416 100%)",
-    topGlow: "radial-gradient(ellipse at top, rgba(254, 249, 195, 0.16) 0%, transparent 62%)",
-    bottomGlow: "radial-gradient(ellipse at bottom, rgba(190, 242, 100, 0.14) 0%, transparent 66%)",
-    grainTint: "rgba(252, 251, 217, 0.08)",
-    accentText: "text-yellow-100",
-    accentSoftText: "text-lime-100/70",
-    statGlow: "shadow-[0_0_36px_rgba(234,179,8,0.18)]",
+    accentText: "text-yellow-50/90",
+    softText: "text-lime-50/72",
+    titleGlow: "drop-shadow-[0_0_18px_rgba(250,204,21,0.15)]",
+    heroMist: "radial-gradient(620px 280px at 18% 18%, rgba(250,204,21,0.18), transparent 72%), radial-gradient(700px 360px at 86% 24%, rgba(163,230,53,0.14), transparent 74%)",
+    gridMist: "radial-gradient(820px 340px at 20% 0%, rgba(234,179,8,0.14), transparent 72%), radial-gradient(720px 300px at 100% 100%, rgba(163,230,53,0.10), transparent 74%)",
+    badgeTone: "border-yellow-200/15 bg-yellow-100/[0.04]",
+    heroPanel: "border-yellow-200/14 bg-yellow-100/[0.035]",
   },
 };
 
@@ -90,55 +84,37 @@ export default function CategoryPageClient({
   const theme = CATEGORY_THEMES[category.id] ?? CATEGORY_THEMES.indoor;
 
   return (
-    <main className="relative flex flex-col min-h-screen overflow-hidden bg-transparent">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0" style={{ background: theme.pageBackground }} />
-        <div className="absolute inset-0 opacity-90" style={{ backgroundImage: theme.topGlow }} />
-        <div className="absolute inset-0 opacity-80" style={{ backgroundImage: theme.bottomGlow }} />
-        <div
-          className="absolute inset-0 opacity-[0.13] mix-blend-screen"
-          style={{
-            backgroundImage: `radial-gradient(${theme.grainTint} 1px, transparent 1px)`,
-            backgroundSize: "20px 20px",
-          }}
-        />
-        <div className="absolute left-[-8%] top-[12%] h-72 w-72 rounded-full blur-3xl" style={{ background: theme.grainTint }} />
-        <div className="absolute right-[-10%] top-[24%] h-96 w-96 rounded-full blur-3xl" style={{ background: theme.grainTint }} />
-      </div>
-
+    <main className="relative flex flex-col min-h-screen bg-transparent">
       <Navbar />
 
       {/* Hero Banner */}
-      <section className={`relative pt-32 pb-16 px-6 overflow-hidden`}>
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-30`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/45" />
-        <div className="absolute inset-0" style={{ backgroundImage: theme.topGlow }} />
+      <section className="pt-32 pb-16 px-6">
+        <div className="relative max-w-6xl mx-auto">
+          <div className="pointer-events-none absolute inset-x-[-8%] inset-y-[-14%] rounded-[56px] blur-3xl opacity-100" style={{ backgroundImage: theme.heroMist }} />
 
-        {/* Floating emojis */}
-        {[...Array(8)].map((_, i) => (
-          <motion.span
-            key={i}
-            className="absolute text-4xl select-none pointer-events-none"
-            style={{
-              left: `${10 + i * 11}%`,
-              top: `${20 + (i % 3) * 20}%`,
-              opacity: 0.12,
-            }}
-            animate={{ y: [0, -20, 0], rotate: [0, 15, 0] }}
-            transition={{
-              duration: 3 + i * 0.5,
-              repeat: Infinity,
-              delay: i * 0.3,
-              ease: "easeInOut",
-            }}
-          >
-            {category.emoji}
-          </motion.span>
-        ))}
+          {/* Floating emojis */}
+          {[...Array(8)].map((_, i) => (
+            <motion.span
+              key={i}
+              className="absolute text-4xl select-none pointer-events-none"
+              style={{
+                left: `${10 + i * 11}%`,
+                top: `${20 + (i % 3) * 20}%`,
+                opacity: 0.06,
+              }}
+              animate={{ y: [0, -20, 0], rotate: [0, 15, 0] }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeInOut",
+              }}
+            >
+              {category.emoji}
+            </motion.span>
+          ))}
 
-        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className={`relative z-10 rounded-[32px] border px-6 py-7 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.18)] ${theme.heroPanel}`}>
           <BackButton fallbackHref="/#plants" label="Back" className="mb-6" />
 
           <motion.div
@@ -148,7 +124,7 @@ export default function CategoryPageClient({
             className="flex items-center gap-4 mb-3"
           >
             <span className="text-6xl">{category.emoji}</span>
-            <div className="flex items-center gap-1">
+            <div className={`flex items-center gap-1 rounded-full border px-3 py-1 backdrop-blur-sm ${theme.badgeTone}`}>
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
@@ -163,7 +139,7 @@ export default function CategoryPageClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className={`text-4xl sm:text-6xl font-extrabold text-white mb-4 ${theme.statGlow}`}
+            className={`text-4xl sm:text-6xl font-extrabold text-white mb-4 ${theme.titleGlow}`}
           >
             {category.name}
           </motion.h1>
@@ -172,7 +148,7 @@ export default function CategoryPageClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={`max-w-2xl text-lg leading-relaxed ${theme.accentSoftText}`}
+            className={`max-w-2xl text-lg leading-relaxed ${theme.softText}`}
           >
             {category.description}
           </motion.p>
@@ -186,13 +162,14 @@ export default function CategoryPageClient({
             <Leaf size={14} />
             {category.plants.length} plants available
           </motion.div>
-        </div>
+          </div>{/* z-10 */}
+        </div>{/* relative max-w-6xl */}
       </section>
 
       {/* Plants Grid */}
-      <section className="relative py-16 px-6 flex-1">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/8 to-black/20" />
-        <div className="max-w-6xl mx-auto">
+      <section className="py-16 px-6 flex-1">
+        <div className="relative max-w-6xl mx-auto">
+          <div className="pointer-events-none absolute inset-x-[-8%] top-[-10%] bottom-[8%] rounded-[64px] blur-3xl opacity-100" style={{ backgroundImage: theme.gridMist }} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {category.plants.map((plant, i) => (
               <PlantCard
@@ -207,7 +184,7 @@ export default function CategoryPageClient({
         </div>
       </section>
 
-      <Footer />
+      <Footer minimal />
     </main>
   );
 }

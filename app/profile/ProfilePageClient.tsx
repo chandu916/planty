@@ -788,7 +788,7 @@ export default function ProfilePageClient() {
         )}
       </div>
 
-      <Footer />
+      <Footer minimal />
     </main>
   );
 }

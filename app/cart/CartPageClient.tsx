@@ -377,7 +377,7 @@ export default function CartPageClient() {
         </AnimatePresence>
       </div>
 
-      <Footer />
+      <Footer minimal />
     </main>
   );
 }

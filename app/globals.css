@@ -23,33 +23,120 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
   background:
-    radial-gradient(1200px 700px at 8% 12%, rgba(106, 169, 255, 0.35), transparent 60%),
-    radial-gradient(1000px 680px at 88% 16%, rgba(72, 214, 180, 0.32), transparent 58%),
-    radial-gradient(920px 700px at 50% 86%, rgba(32, 116, 209, 0.26), transparent 62%),
-    linear-gradient(160deg, #061229 0%, #08192a 35%, #0b2330 65%, #0d2b35 100%);
+    radial-gradient(1180px 760px at 12% 12%, rgba(111, 214, 166, 0.02), transparent 60%),
+    radial-gradient(960px 720px at 82% 14%, rgba(83, 170, 140, 0.02), transparent 58%),
+    radial-gradient(1080px 900px at 50% 88%, rgba(10, 69, 52, 0.04), transparent 62%),
+    linear-gradient(160deg, #000000 0%, #050505 28%, #080808 58%, #000000 100%);
+}
+
+.app-fixed-bg__gloss {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.app-fixed-bg__gloss--top {
+  inset: 0 0 auto 0;
+  height: 30vh;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(222, 255, 240, 0.02) 28%, transparent 100%);
+  opacity: 0.5;
+}
+
+.app-fixed-bg__gloss--sheet {
+  background:
+    radial-gradient(1000px 180px at 50% -4%, rgba(255, 255, 255, 0.14), transparent 72%),
+    linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.03) 42%, rgba(240, 255, 248, 0.06) 50%, rgba(194, 245, 220, 0.03) 58%, transparent 100%);
+  opacity: 0.5;
+}
+
+.app-fixed-bg__mist {
+  position: absolute;
+  inset: -6%;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 260px at 18% 20%, rgba(255, 255, 255, 0.06), transparent 70%),
+    radial-gradient(720px 320px at 74% 24%, rgba(210, 255, 236, 0.05), transparent 72%),
+    radial-gradient(680px 280px at 52% 70%, rgba(180, 240, 214, 0.05), transparent 74%),
+    radial-gradient(520px 220px at 30% 86%, rgba(255, 255, 255, 0.04), transparent 72%);
+  filter: blur(34px);
+  opacity: 0.9;
+}
+
+.app-fixed-bg__mist::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(244, 255, 248, 0.1) 0.8px, transparent 0.8px);
+  background-size: 28px 28px;
+  opacity: 0.14;
+  filter: blur(0.4px);
 }
 
 .app-fixed-bg::before,
 .app-fixed-bg::after {
   content: "";
   position: absolute;
-  inset: -10%;
+  inset: -8%;
   pointer-events: none;
 }
 
 .app-fixed-bg::before {
   background:
-    radial-gradient(500px 240px at 20% 30%, rgba(255, 255, 255, 0.12), transparent 70%),
-    radial-gradient(430px 220px at 74% 66%, rgba(255, 255, 255, 0.1), transparent 70%);
-  filter: blur(42px);
-  animation: bgFloat 16s ease-in-out infinite alternate;
+    radial-gradient(480px 220px at 18% 24%, rgba(255, 255, 255, 0.12), transparent 72%),
+    radial-gradient(560px 260px at 76% 20%, rgba(186, 255, 244, 0.08), transparent 74%),
+    radial-gradient(520px 240px at 72% 68%, rgba(163, 228, 255, 0.08), transparent 72%);
+  filter: blur(54px);
+  animation: bgFloat 18s ease-in-out infinite alternate;
 }
 
 .app-fixed-bg::after {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-  background-size: 18px 18px;
+  background:
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 2px,
+      transparent 2px,
+      transparent 24px
+    );
   opacity: 0.14;
+  mix-blend-mode: screen;
+  transform: scale(1.08);
+}
+
+.app-fixed-bg__veil {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(120px);
+  opacity: 0.42;
+  mix-blend-mode: screen;
+  animation: bgVeil 22s ease-in-out infinite alternate;
+}
+
+.app-fixed-bg__veil--one {
+  inset: auto auto 10% -12%;
+  width: 38rem;
+  height: 38rem;
+  background: radial-gradient(circle, rgba(72, 214, 180, 0.12) 0%, rgba(72, 214, 180, 0.02) 42%, transparent 72%);
+}
+
+.app-fixed-bg__veil--two {
+  inset: 2% -10% auto auto;
+  width: 34rem;
+  height: 34rem;
+  background: radial-gradient(circle, rgba(128, 198, 154, 0.10) 0%, rgba(128, 198, 154, 0.02) 44%, transparent 72%);
+  animation-duration: 26s;
+}
+
+@keyframes bgVeil {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(2%, -3%, 0) scale(1.08);
+  }
 }
 
 @keyframes bgFloat {

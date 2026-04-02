@@ -45,10 +45,6 @@ export default function AdminLoginClient() {
 
   return (
     <main className="min-h-screen bg-transparent flex items-center justify-center px-4">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/40 via-black to-black" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(74,222,128,0.06)_0%,_transparent_70%)]" />
-
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

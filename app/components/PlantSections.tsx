@@ -5,23 +5,16 @@ import { plantCategories, PlantCategory } from "@/lib/plants";
 import { Star } from "lucide-react";
 import PlantCard from "./PlantCard";
 
-function CategorySection({ category, index }: { category: PlantCategory; index: number }) {
-  const isEven = index % 2 === 0;
-
+function CategorySection({ category }: { category: PlantCategory }) {
   return (
     <motion.section
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.6 }}
-      className="relative py-20 px-6 overflow-hidden"
+      className="py-20 px-6"
     >
-      <div
-        className={`absolute inset-0 bg-gradient-to-${isEven ? "r" : "l"} ${category.gradient} opacity-10 pointer-events-none`}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40 pointer-events-none" />
-
-      <div className="relative z-10 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
             <motion.div
@@ -89,8 +82,8 @@ function CategorySection({ category, index }: { category: PlantCategory; index: 
 export default function PlantSections() {
   return (
     <div id="plants">
-      {plantCategories.map((category, index) => (
-        <CategorySection key={category.id} category={category} index={index} />
+      {plantCategories.map((category) => (
+        <CategorySection key={category.id} category={category} />
       ))}
     </div>
   );

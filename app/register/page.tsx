@@ -15,7 +15,7 @@ export default function RegisterPage() {
       <div>
         <RegisterForm />
       </div>
-      <Footer />
+      <Footer minimal />
     </main>
   );
 }

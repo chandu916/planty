@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import GlobalBackground from "./components/GlobalBackground";
 import GlobalClickEffects from "./components/GlobalClickEffects";
 
 const inter = Inter({
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <div className="app-fixed-bg" aria-hidden="true" />
+        <GlobalBackground />
         <GlobalClickEffects />
         <div className="relative z-10">{children}</div>
       </body>

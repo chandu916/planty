@@ -94,10 +94,6 @@ export default function RegisterForm() {
 
   return (
     <section id="register" className="relative py-24 px-6">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-emerald-950/30 to-black" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(74,222,128,0.08)_0%,_transparent_70%)]" />
-
       <div className="relative z-10 max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
