@@ -25,7 +25,7 @@ import {
   Key,
 } from "lucide-react";
 import { useUserStore } from "@/lib/userStore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useForm } from "react-hook-form";
@@ -118,8 +118,10 @@ function inputClass(hasError: boolean) {
 }
 
 export default function ProfilePageClient() {
-  const { email, setEmail } = useUserStore();
-  const [emailInput, setEmailInput] = useState("");
+  const isLoggedIn = useUserStore((s) => s.isLoggedIn);
+  const loggedInUser = useUserStore((s) => s.user);
+  const logout = useUserStore((s) => s.logout);
+  const updateLoggedInUser = useUserStore((s) => s.updateUser);
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -148,35 +150,7 @@ export default function ProfilePageClient() {
     formState: { errors },
   } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
 
-  const fetchUser = async (em: string) => {
-    setLoading(true);
-    setFetchError("");
-    try {
-      const res = await fetch(`/api/profile?email=${encodeURIComponent(em)}`);
-      const json = await res.json();
-      if (json.success) {
-        setUser(json.user);
-        setEmail(em);
-        reset({
-          fullName: json.user.fullName,
-          phone: json.user.phone,
-          address: json.user.address,
-          city: json.user.city,
-          state: json.user.state,
-          pincode: json.user.pincode,
-        });
-        fetchOrders(em);
-      } else {
-        setFetchError(json.message || "User not found. Please register first.");
-      }
-    } catch {
-      setFetchError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchOrders = async (em: string) => {
+  const fetchOrders = useCallback(async (em: string) => {
     setOrdersLoading(true);
     try {
       const res = await fetch(`/api/orders?email=${encodeURIComponent(em)}`);
@@ -185,7 +159,34 @@ export default function ProfilePageClient() {
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, []);
+
+  const fetchUser = useCallback(async (em: string) => {
+    setLoading(true);
+    setFetchError("");
+    try {
+      const res = await fetch(`/api/profile?email=${encodeURIComponent(em)}`);
+      const json = await res.json();
+      if (json.success) {
+        setUser(json.user);
+        reset({
+          fullName: json.user.fullName,
+          phone: json.user.phone,
+          address: json.user.address,
+          city: json.user.city,
+          state: json.user.state,
+          pincode: json.user.pincode,
+        });
+        await fetchOrders(em);
+      } else {
+        setFetchError(json.message || "User not found. Please register first.");
+      }
+    } catch {
+      setFetchError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchOrders, reset]);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,9 +221,16 @@ export default function ProfilePageClient() {
   };
 
   useEffect(() => {
-    if (email) fetchUser(email);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isLoggedIn || !loggedInUser?.email) {
+      setUser(null);
+      setOrders([]);
+      setFetchError("");
+      setShowPasswordSection(false);
+      return;
+    }
+
+    void fetchUser(loggedInUser.email);
+  }, [fetchUser, isLoggedIn, loggedInUser?.email]);
 
   const onSave = async (data: EditForm) => {
     if (!user) return;
@@ -236,6 +244,15 @@ export default function ProfilePageClient() {
       const json = await res.json();
       if (json.success) {
         setUser(json.user);
+        updateLoggedInUser({
+          email: json.user.email,
+          fullName: json.user.fullName,
+          phone: json.user.phone,
+          address: json.user.address,
+          city: json.user.city,
+          state: json.user.state,
+          pincode: json.user.pincode,
+        });
         setSaveStatus("saved");
         setEditing(false);
         setTimeout(() => setSaveStatus("idle"), 2000);
@@ -265,7 +282,7 @@ export default function ProfilePageClient() {
           </h1>
         </motion.div>
 
-        {!user ? (
+        {!isLoggedIn ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -280,55 +297,23 @@ export default function ProfilePageClient() {
               >
                 🌿
               </motion.div>
-              <h2 className="text-xl font-bold text-white">Find Your Profile</h2>
+              <h2 className="text-xl font-bold text-white">Sign in to view your profile</h2>
               <p className="text-green-200/50 text-sm">
-                Enter the email you registered with to view your details.
+                Profile details and orders are available only after a normal user login.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="relative">
-                <Mail
-                  size={15}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400/60"
-                />
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && fetchUser(emailInput)}
-                  className="w-full bg-white/5 border border-white/10 hover:border-green-500/30 focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20 rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder-green-200/30 focus:outline-none transition-all"
-                />
-              </div>
-
-              {fetchError && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 text-red-400 text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20"
+            <div className="space-y-3">
+              <Link href="/login" className="block">
+                <motion.span
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-500 py-3.5 text-sm font-bold text-black transition-colors hover:bg-green-400"
                 >
-                  <AlertCircle size={14} />
-                  {fetchError}
-                </motion.div>
-              )}
-
-              <motion.button
-                disabled={loading || !emailInput}
-                onClick={() => fetchUser(emailInput)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full py-3.5 rounded-xl bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <>
-                    <User size={16} />
-                    View Profile
-                  </>
-                )}
-              </motion.button>
+                  <User size={16} />
+                  Go to Login
+                </motion.span>
+              </Link>
 
               <p className="text-center text-green-200/30 text-xs">
                 Not registered?{" "}
@@ -336,6 +321,28 @@ export default function ProfilePageClient() {
                   Register here
                 </Link>
               </p>
+            </div>
+          </motion.div>
+        ) : loading && !user ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white/5 border border-white/10 rounded-2xl p-8 flex items-center justify-center gap-3 text-green-300/70"
+          >
+            <Loader2 size={18} className="animate-spin" />
+            Loading your profile...
+          </motion.div>
+        ) : !user ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white/5 border border-white/10 rounded-2xl p-8"
+          >
+            <div className="flex items-center gap-2 text-red-400 text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+              <AlertCircle size={14} />
+              {fetchError || "Unable to load your profile right now."}
             </div>
           </motion.div>
         ) : (
@@ -559,9 +566,10 @@ export default function ProfilePageClient() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => {
+                      logout();
                       setUser(null);
                       setOrders([]);
-                      useUserStore.getState().clearEmail();
+                      setShowPasswordSection(false);
                     }}
                     className="w-full py-3 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 text-sm font-medium transition-all flex items-center justify-center gap-2"
                   >
@@ -611,12 +619,15 @@ export default function ProfilePageClient() {
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       required
                       placeholder="Your current password"
-                      className={inputClass(false) + " pr-10"}
+                      className={inputClass(false) + " pr-11"}
                     />
-                    <button type="button" onClick={() => setShowCurrentPw((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400/50 hover:text-green-400">
-                      {showCurrentPw ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <button type="button" onClick={() => setShowCurrentPw((v) => !v)}
+                        className="input-icon-button text-green-400/50 hover:text-green-400"
+                        aria-label={showCurrentPw ? "Hide current password" : "Show current password"}>
+                        {showCurrentPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -631,12 +642,15 @@ export default function ProfilePageClient() {
                       required
                       minLength={8}
                       placeholder="Min. 8 characters"
-                      className={inputClass(false) + " pr-10"}
+                      className={inputClass(false) + " pr-11"}
                     />
-                    <button type="button" onClick={() => setShowNewPw((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400/50 hover:text-green-400">
-                      {showNewPw ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <button type="button" onClick={() => setShowNewPw((v) => !v)}
+                        className="input-icon-button text-green-400/50 hover:text-green-400"
+                        aria-label={showNewPw ? "Hide new password" : "Show new password"}>
+                        {showNewPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

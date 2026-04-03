@@ -15,14 +15,14 @@ const FREE_DELIVERY_THRESHOLD = 999;
 
 export default function CartPageClient() {
   const { items, removeItem, updateQuantity, clearCart, loadItems } = useCartStore();
-  const { isLoggedIn, user, email } = useUserStore();
+  const { isLoggedIn, user } = useUserStore();
   const [checkedOut, setCheckedOut] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
   const cartLoadedRef = useRef(false);
 
-  const userEmail = isLoggedIn && user ? user.email : email;
+  const userEmail = isLoggedIn ? user?.email ?? null : null;
 
   // Load saved cart from DB when user is logged in (runs once on mount)
   useEffect(() => {

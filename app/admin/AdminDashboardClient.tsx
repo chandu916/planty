@@ -9,7 +9,6 @@ import {
   X,
   Search,
   Download,
-  Leaf,
   Clock,
   CheckCircle,
   XCircle,
@@ -107,7 +106,7 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoggedIn) {
-      router.push("/admin/login");
+      router.push("/login");
     }
   }, [isLoggedIn, router]);
 
@@ -154,7 +153,7 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
 
   const handleLogout = () => {
     logout();
-    router.push("/admin/login");
+    router.push("/login");
   };
 
   const filteredOrders = useMemo(() => {
@@ -200,8 +199,6 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   // Order stats
   const pendingCount  = orders.filter((o) => o.status === "pending").length;
   const acceptedCount = orders.filter((o) => o.status === "accepted").length;
-  const declinedCount = orders.filter((o) => o.status === "declined").length;
-
   if (!isLoggedIn) return null;
 
   return (

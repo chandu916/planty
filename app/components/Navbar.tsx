@@ -3,15 +3,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, ShoppingCart, UserCircle2, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useCartStore } from "@/lib/cartStore";
 import { useUserStore } from "@/lib/userStore";
 import { useRouter } from "next/navigation";
 
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+const emptySubscribe = () => () => {};
 
 export default function Navbar() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const router = useRouter();
 
   // Only read Zustand stores after hydration to avoid SSR mismatch
@@ -21,10 +22,6 @@ export default function Navbar() {
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const user = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!mounted || !isLoggedIn) return;
@@ -111,16 +108,18 @@ export default function Navbar() {
         </Link>
 
         {/* Profile */}
-        <Link href="/profile">
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="My Profile"
-            className="w-9 h-9 rounded-full border border-green-500/30 hover:border-green-400 flex items-center justify-center text-green-400 hover:text-green-300 transition-all"
-          >
-            <UserCircle2 size={20} />
-          </motion.div>
-        </Link>
+        {mounted && isLoggedIn ? (
+          <Link href="/profile">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="My Profile"
+              className="w-9 h-9 rounded-full border border-green-500/30 hover:border-green-400 flex items-center justify-center text-green-400 hover:text-green-300 transition-all"
+            >
+              <UserCircle2 size={20} />
+            </motion.div>
+          </Link>
+        ) : null}
 
         {/* Cart */}
         <Link href="/cart">

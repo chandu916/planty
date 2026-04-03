@@ -298,3 +298,39 @@ html {
   background: rgba(74, 222, 128, 0.3);
   color: #f0fdf4;
 }
+
+.input-icon-button,
+.input-icon-button:hover,
+.input-icon-button:active {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  position: static !important;
+  border: 0 !important;
+  background: transparent;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  filter: none;
+  isolation: auto;
+  overflow: visible;
+  transform: none !important;
+  transition: color 180ms ease;
+}
+
+.input-icon-button:hover,
+.input-icon-button:active,
+.input-icon-button:focus-visible {
+  color: rgba(74, 222, 128, 1);
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.input-icon-button::before,
+.input-icon-button::after {
+  content: none !important;
+}

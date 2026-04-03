@@ -211,15 +211,18 @@ export default function RegisterForm() {
                         {...register("password")}
                         type={showPassword ? "text" : "password"}
                         placeholder="Min. 8 characters"
-                        className={inputClass(!!errors.password) + " pr-10"}
+                        className={inputClass(!!errors.password) + " pr-11"}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400/50 hover:text-green-400"
-                      >
-                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="input-icon-button text-green-400/50 hover:text-green-400"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
                     </div>
                   </Field>
                   <Field
@@ -232,15 +235,18 @@ export default function RegisterForm() {
                         {...register("confirmPassword")}
                         type={showConfirm ? "text" : "password"}
                         placeholder="Re-enter password"
-                        className={inputClass(!!errors.confirmPassword) + " pr-10"}
+                        className={inputClass(!!errors.confirmPassword) + " pr-11"}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirm((v) => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400/50 hover:text-green-400"
-                      >
-                        {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirm((v) => !v)}
+                          className="input-icon-button text-green-400/50 hover:text-green-400"
+                          aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
+                        >
+                          {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
                     </div>
                   </Field>
                 </div>

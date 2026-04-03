@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import AdminLoginClient from "./AdminLoginClient";
-
-export const metadata: Metadata = {
-  title: "Admin Login · Planty",
-};
+import { redirect } from "next/navigation";
 
 export default function AdminLoginPage() {
-  return <AdminLoginClient />;
+  redirect("/login");
 }
