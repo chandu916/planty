@@ -22,11 +22,13 @@ import {
   ChevronUp,
   Truck,
   Package,
+  CreditCard,
 } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStore } from "@/lib/adminStore";
 import BackButton from "@/app/components/BackButton";
+import { getPaymentBadgeLabel, type OrderPaymentSummary } from "@/lib/payment";
 
 interface AdminUser {
   _id: string;
@@ -49,7 +51,7 @@ interface OrderItem {
   quantity: number;
 }
 
-interface Order {
+interface Order extends OrderPaymentSummary {
   _id: string;
   userEmail: string;
   userName: string;
@@ -83,6 +85,26 @@ const DELIVERY_STYLES: Record<string, { bg: string; label: string }> = {
   delivered:        { bg: "bg-green-500/15 border-green-500/30 text-green-400", label: "Delivered" },
 };
 
+const PAYMENT_STYLES = {
+  paid: "bg-green-500/15 border-green-500/30 text-green-300",
+  mock_paid: "bg-sky-500/15 border-sky-500/30 text-sky-300",
+  not_recorded: "bg-zinc-500/15 border-zinc-500/25 text-zinc-300",
+};
+
+const PAYMENT_PROVIDER_OPTIONS = [
+  { value: "all", label: "All payments" },
+  { value: "razorpay", label: "Razorpay" },
+  { value: "mock", label: "Mock" },
+  { value: "legacy", label: "Legacy" },
+] as const;
+
+const PAYMENT_STATUS_OPTIONS = [
+  { value: "all", label: "All payment states" },
+  { value: "paid", label: "Paid" },
+  { value: "mock_paid", label: "Mock Paid" },
+  { value: "not_recorded", label: "Unrecorded" },
+] as const;
+
 const DELIVERY_STEPS: Array<{ value: string; label: string }> = [
   { value: "not_shipped",      label: "Not Shipped" },
   { value: "shipped",          label: "Shipped" },
@@ -102,6 +124,8 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   const [orderSearch, setOrderSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accepted" | "declined">("all");
+  const [paymentProviderFilter, setPaymentProviderFilter] = useState<(typeof PAYMENT_PROVIDER_OPTIONS)[number]["value"]>("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<(typeof PAYMENT_STATUS_OPTIONS)[number]["value"]>("all");
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -163,9 +187,13 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
         o.userName.toLowerCase().includes(orderSearch.toLowerCase()) ||
         o.userEmail.toLowerCase().includes(orderSearch.toLowerCase());
       const matchesStatus = statusFilter === "all" || o.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesPaymentProvider =
+        paymentProviderFilter === "all" || o.paymentProvider === paymentProviderFilter;
+      const matchesPaymentStatus =
+        paymentStatusFilter === "all" || o.paymentStatus === paymentStatusFilter;
+      return matchesSearch && matchesStatus && matchesPaymentProvider && matchesPaymentStatus;
     });
-  }, [orders, orderSearch, statusFilter]);
+  }, [orders, orderSearch, statusFilter, paymentProviderFilter, paymentStatusFilter]);
 
   const filteredUsers = useMemo(() => {
     const q = userSearch.toLowerCase();
@@ -273,7 +301,7 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
         {tab === "orders" && (
           <div>
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <div className="flex flex-col gap-3 mb-5">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-green-400/50" />
                 <input
@@ -283,30 +311,59 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
                   className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-green-200/30 focus:outline-none focus:border-green-500/40 focus:ring-1 focus:ring-green-500/20"
                 />
               </div>
-              <div className="flex gap-2">
-                {(["all", "pending", "accepted", "declined"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium capitalize transition-all ${
-                      statusFilter === s
-                        ? s === "pending"   ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                        : s === "accepted"  ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : s === "declined"  ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                        : "bg-white/10 text-white border border-white/20"
-                        : "bg-white/5 text-green-200/40 border border-white/10 hover:text-green-200/70"
-                    }`}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {(["all", "pending", "accepted", "declined"] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      className={`px-3 py-2 rounded-xl text-xs font-medium capitalize transition-all ${
+                        statusFilter === s
+                          ? s === "pending"   ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                          : s === "accepted"  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : s === "declined"  ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-white/10 text-white border border-white/20"
+                          : "bg-white/5 text-green-200/40 border border-white/10 hover:text-green-200/70"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <select
+                    value={paymentProviderFilter}
+                    onChange={(e) => setPaymentProviderFilter(e.target.value as (typeof PAYMENT_PROVIDER_OPTIONS)[number]["value"])}
+                    className="min-w-40 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-green-500/40 focus:ring-1 focus:ring-green-500/20"
                   >
-                    {s}
+                    {PAYMENT_PROVIDER_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value} className="bg-zinc-950">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={paymentStatusFilter}
+                    onChange={(e) => setPaymentStatusFilter(e.target.value as (typeof PAYMENT_STATUS_OPTIONS)[number]["value"])}
+                    className="min-w-44 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-green-500/40 focus:ring-1 focus:ring-green-500/20"
+                  >
+                    {PAYMENT_STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value} className="bg-zinc-950">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={fetchOrders}
+                    className="self-start p-2 rounded-xl bg-white/5 border border-white/10 text-green-400/50 hover:text-green-400 transition-colors"
+                    title="Refresh"
+                  >
+                    <RefreshCw size={14} />
                   </button>
-                ))}
-                <button
-                  onClick={fetchOrders}
-                  className="p-2 rounded-xl bg-white/5 border border-white/10 text-green-400/50 hover:text-green-400 transition-colors"
-                  title="Refresh"
-                >
-                  <RefreshCw size={14} />
-                </button>
+                </div>
               </div>
             </div>
 
@@ -346,6 +403,10 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${style.bg}`}>
                                 <StatusIcon size={10} />
                                 {order.status}
+                              </span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${PAYMENT_STYLES[order.paymentStatus]}`}>
+                                <CreditCard size={10} />
+                                {getPaymentBadgeLabel(order)}
                               </span>
                               {order.status === "accepted" && (
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${DELIVERY_STYLES[order.deliveryStatus]?.bg ?? ""}`}>
@@ -468,6 +529,29 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
                                     <div className="flex justify-between text-xs font-semibold">
                                       <span className="text-white">Total</span>
                                       <span className="text-green-400">₹{order.total}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="px-4 pb-4">
+                                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs">
+                                  <p className="mb-2 flex items-center gap-1 text-green-200/40">
+                                    <CreditCard size={11} /> Payment
+                                  </p>
+                                  <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                                    <div>
+                                      <p className="text-green-200/35">Method</p>
+                                      <p className="mt-1 text-white/80">{order.paymentMethodLabel}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-green-200/35">Reference</p>
+                                      <p className="mt-1 truncate text-white/60">{order.paymentReference ?? "Not recorded"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-green-200/35">Paid at</p>
+                                      <p className="mt-1 text-white/60">
+                                        {order.paidAt ? new Date(order.paidAt).toLocaleString("en-IN") : "Not recorded"}
+                                      </p>
                                     </div>
                                   </div>
                                 </div>

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/server/db/connection";
+import { normalizeOrderPaymentSummary } from "@/lib/payment";
 
 export async function handleGetAllOrders(): Promise<NextResponse> {
   try {
@@ -18,6 +19,13 @@ export async function handleGetAllOrders(): Promise<NextResponse> {
       .toArray();
 
     const orders = raw.map((o) => ({
+      ...normalizeOrderPaymentSummary({
+        paymentProvider: o.paymentProvider as string | undefined,
+        paymentStatus: o.paymentStatus as string | undefined,
+        paymentMethodLabel: o.paymentMethodLabel as string | undefined,
+        paymentReference: o.paymentReference as string | null | undefined,
+        paidAt: o.paidAt as string | null | undefined,
+      }),
       _id: o._id.toString(),
       userEmail: o.userEmail,
       userName: o.userName,

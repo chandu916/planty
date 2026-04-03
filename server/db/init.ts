@@ -60,6 +60,13 @@ const ordersValidator = {
       subtotal:       { bsonType: "number", minimum: 0 },
       deliveryFee:    { bsonType: "number", minimum: 0 },
       total:          { bsonType: "number", minimum: 0 },
+      paymentProvider:{ bsonType: "string", enum: ["mock", "razorpay", "legacy"] },
+      paymentStatus:  { bsonType: "string", enum: ["paid", "mock_paid", "not_recorded"] },
+      paymentMethodLabel: { bsonType: "string" },
+      paymentReference: { bsonType: ["string", "null"] },
+      paymentId:      { bsonType: ["string", "null"] },
+      paymentOrderId: { bsonType: ["string", "null"] },
+      paidAt:         { bsonType: ["string", "null"] },
       status:         { bsonType: "string", enum: ["pending", "accepted", "declined"] },
       deliveryStatus: { bsonType: "string", enum: ["not_shipped", "shipped", "out_for_delivery", "delivered"] },
       createdAt:      { bsonType: "string" },
@@ -145,8 +152,36 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
   await ordersCol.createIndex({ userEmail: 1 }, { name: "userEmail_idx" });
   await ordersCol.createIndex({ status: 1 },     { name: "status_idx" });
   await ordersCol.createIndex({ deliveryStatus: 1 }, { name: "deliveryStatus_idx" });
+  await ordersCol.createIndex({ paymentStatus: 1 }, { name: "paymentStatus_idx" });
+  await ordersCol.createIndex({ paymentProvider: 1 }, { name: "paymentProvider_idx" });
+  await ordersCol.createIndex({ paidAt: -1 }, { name: "paidAt_desc" });
   await ordersCol.createIndex({ createdAt: -1 }, { name: "createdAt_desc" });
-  log.push("✓ Indexes ready: orders.userEmail, orders.status, orders.deliveryStatus, orders.createdAt");
+  log.push("✓ Indexes ready: orders.userEmail, orders.status, orders.deliveryStatus, orders.paymentStatus, orders.paymentProvider, orders.paidAt, orders.createdAt");
+
+  const paymentBackfill = await ordersCol.updateMany(
+    {
+      $or: [
+        { paymentProvider: { $exists: false } },
+        { paymentStatus: { $exists: false } },
+        { paymentMethodLabel: { $exists: false } },
+        { paymentReference: { $exists: false } },
+        { paidAt: { $exists: false } },
+      ],
+    },
+    {
+      $set: {
+        paymentProvider: "legacy",
+        paymentStatus: "not_recorded",
+        paymentMethodLabel: "Not recorded",
+        paymentReference: null,
+        paidAt: null,
+      },
+    }
+  );
+
+  if (paymentBackfill.modifiedCount > 0) {
+    log.push(`✓ Backfilled payment fields for ${paymentBackfill.modifiedCount} existing order(s)`);
+  }
 
   // ── carts collection ──────────────────────────────────────────────────────
   if (!existingCollections.includes("carts")) {

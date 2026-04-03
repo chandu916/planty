@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Minus, Plus, Trash2, ShoppingBag, Leaf, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Leaf, CheckCircle, AlertCircle, Loader2, CreditCard, ShieldCheck, Smartphone, X } from "lucide-react";
 import { useCartStore } from "@/lib/cartStore";
+import type { CheckoutSession, OrderPaymentPayload, RazorpaySuccessResponse } from "@/lib/payment";
 import { useUserStore } from "@/lib/userStore";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
@@ -12,6 +13,44 @@ import { useState, useEffect, useRef } from "react";
 
 const DELIVERY_FEE = 99;
 const FREE_DELIVERY_THRESHOLD = 999;
+const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+
+type MockPaymentMethod = "upi" | "card" | "bank";
+
+const PAYMENT_METHODS: Array<{
+  id: MockPaymentMethod;
+  label: string;
+  hint: string;
+  icon: typeof Smartphone;
+}> = [
+  { id: "upi", label: "UPI", hint: "Fastest for test checkout", icon: Smartphone },
+  { id: "card", label: "Card", hint: "Visa / Mastercard test flow", icon: CreditCard },
+  { id: "bank", label: "Net Banking", hint: "Mock bank redirect", icon: ShieldCheck },
+];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function loadExternalScript(src: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function CartPageClient() {
   const { items, removeItem, updateQuantity, clearCart, loadItems } = useCartStore();
@@ -19,6 +58,11 @@ export default function CartPageClient() {
   const [checkedOut, setCheckedOut] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
+  const [openingPayment, setOpeningPayment] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [paymentSession, setPaymentSession] = useState<CheckoutSession | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<MockPaymentMethod>("upi");
   const [orderError, setOrderError] = useState("");
   const cartLoadedRef = useRef(false);
 
@@ -63,8 +107,22 @@ export default function CartPageClient() {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
   const total = subtotal + deliveryFee;
+  const checkoutBusy = openingPayment || processingPayment || placing;
 
-  const handleCheckout = async () => {
+  const openMockPaymentSheet = (checkout: CheckoutSession, message?: string) => {
+    setPaymentSession({
+      ...checkout,
+      provider: "mock",
+      sessionId: `mock_${Date.now()}`,
+      keyId: undefined,
+      orderId: undefined,
+      instructions: message ?? checkout.instructions,
+    });
+    setPaymentMethod("upi");
+    setPaymentSheetOpen(true);
+  };
+
+  const finalizeOrder = async (payment: OrderPaymentPayload) => {
     if (!userEmail) {
       setOrderError("Please log in or register before placing an order.");
       return;
@@ -77,14 +135,15 @@ export default function CartPageClient() {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, items, subtotal, deliveryFee, total }),
+        body: JSON.stringify({ userEmail, items, subtotal, deliveryFee, total, payment }),
       });
       const json = await res.json();
       if (json.success) {
+        setPaymentSheetOpen(false);
+        setPaymentSession(null);
         setOrderId(json.orderId);
         setCheckedOut(true);
         clearCart();
-        // Clear the saved DB cart too
         fetch(`/api/cart?email=${encodeURIComponent(userEmail)}`, { method: "DELETE" })
           .catch(() => {/* silent */});
       } else {
@@ -94,7 +153,111 @@ export default function CartPageClient() {
       setOrderError("Network error. Please try again.");
     } finally {
       setPlacing(false);
+      setProcessingPayment(false);
     }
+  };
+
+  const launchRazorpayCheckout = async (checkout: CheckoutSession) => {
+    if (!checkout.keyId || !checkout.orderId) return false;
+
+    const loaded = await loadExternalScript(RAZORPAY_SCRIPT);
+    if (!loaded || !window.Razorpay) return false;
+
+    const razorpay = new window.Razorpay({
+      key: checkout.keyId,
+      amount: checkout.amount,
+      currency: checkout.currency,
+      name: checkout.merchantName,
+      description: checkout.description,
+      order_id: checkout.orderId,
+      prefill: {
+        name: checkout.customer.name,
+        email: checkout.customer.email,
+        contact: checkout.customer.contact,
+      },
+      theme: { color: "#22c55e" },
+      modal: {
+        ondismiss: () => {
+          setOrderError("Payment was cancelled before the order was placed.");
+        },
+      },
+      handler: (response: RazorpaySuccessResponse) => {
+        void finalizeOrder({
+          provider: "razorpay",
+          status: "paid",
+          reference: response.razorpay_payment_id,
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id,
+          signature: response.razorpay_signature,
+          methodLabel: "Razorpay Test Checkout",
+        });
+      },
+    });
+
+    razorpay.on?.("payment.failed", () => {
+      setOrderError("Payment failed. Please try again.");
+    });
+
+    razorpay.open();
+    return true;
+  };
+
+  const handleCheckout = async () => {
+    if (!userEmail) {
+      setOrderError("Please log in or register before placing an order.");
+      return;
+    }
+
+    if (items.length === 0) {
+      setOrderError("Your cart is empty.");
+      return;
+    }
+
+    setOpeningPayment(true);
+    setOrderError("");
+
+    try {
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail, items, subtotal, deliveryFee, total }),
+      });
+      const json = await res.json();
+
+      if (json.success && json.checkout) {
+        const checkout = json.checkout as CheckoutSession;
+        if (checkout.provider === "razorpay") {
+          const opened = await launchRazorpayCheckout(checkout);
+          if (!opened) {
+            openMockPaymentSheet(
+              checkout,
+              "Razorpay test checkout is unavailable right now, so mock payment mode is active."
+            );
+          }
+        } else {
+          openMockPaymentSheet(checkout);
+        }
+      } else {
+        setOrderError(json.message || "Unable to start payment. Please try again.");
+      }
+    } catch {
+      setOrderError("Unable to start payment. Please try again.");
+    } finally {
+      setOpeningPayment(false);
+    }
+  };
+
+  const handleMockPayment = async () => {
+    if (!paymentSession) return;
+
+    setProcessingPayment(true);
+    await wait(900);
+    await finalizeOrder({
+      provider: "mock",
+      status: "mock_paid",
+      reference: `mockpay_${Date.now()}`,
+      methodLabel: PAYMENT_METHODS.find((method) => method.id === paymentMethod)?.label ?? "Mock Payment",
+    });
   };
 
   return (
@@ -345,15 +508,25 @@ export default function CartPageClient() {
 
                     <motion.button
                       onClick={handleCheckout}
-                      disabled={placing}
-                      whileHover={placing ? {} : {
+                      disabled={checkoutBusy}
+                      whileHover={checkoutBusy ? {} : {
                         scale: 1.03,
                         boxShadow: "0 0 30px rgba(74,222,128,0.4)",
                       }}
                       whileTap={{ scale: 0.97 }}
                       className="w-full py-4 rounded-2xl bg-green-500 hover:bg-green-400 disabled:opacity-60 text-black font-bold text-base transition-colors shadow-xl shadow-green-500/20 flex items-center justify-center gap-2"
                     >
-                      {placing ? (
+                      {openingPayment ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Opening Payment…
+                        </>
+                      ) : processingPayment ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Processing Payment…
+                        </>
+                      ) : placing ? (
                         <>
                           <Loader2 size={18} className="animate-spin" />
                           Placing Order…
@@ -372,6 +545,19 @@ export default function CartPageClient() {
                   </div>
                 </motion.div>
               </div>
+
+              <PaymentSheet
+                open={paymentSheetOpen}
+                session={paymentSession}
+                method={paymentMethod}
+                busy={processingPayment || placing}
+                onClose={() => {
+                  if (processingPayment || placing) return;
+                  setPaymentSheetOpen(false);
+                }}
+                onMethodChange={setPaymentMethod}
+                onConfirm={handleMockPayment}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -379,5 +565,145 @@ export default function CartPageClient() {
 
       <Footer minimal />
     </main>
+  );
+}
+
+function PaymentSheet({
+  open,
+  session,
+  method,
+  busy,
+  onClose,
+  onMethodChange,
+  onConfirm,
+}: {
+  open: boolean;
+  session: CheckoutSession | null;
+  method: MockPaymentMethod;
+  busy: boolean;
+  onClose: () => void;
+  onMethodChange: (method: MockPaymentMethod) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && session && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-4 backdrop-blur-sm sm:items-center"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-lg overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(180deg,rgba(12,32,20,0.96),rgba(5,14,10,0.98))] shadow-2xl shadow-green-950/50"
+          >
+            <div className="border-b border-white/10 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="mb-2 inline-flex rounded-full border border-green-400/20 bg-green-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-green-300">
+                    {session.provider === "razorpay" ? "Razorpay Test Mode" : "Mock Checkout"}
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Complete Payment</h3>
+                  <p className="mt-1 text-sm text-green-200/60">{session.instructions ?? session.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={busy}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-green-200/70 transition hover:border-red-400/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Close payment sheet"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-6 px-6 py-6">
+              <div className="rounded-3xl border border-green-400/15 bg-green-500/8 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-green-300/50">Amount to pay</p>
+                    <p className="mt-2 text-4xl font-black text-white">{session.displayAmount}</p>
+                    <p className="mt-2 text-sm text-green-200/60">{session.customer.name} · {session.customer.email}</p>
+                  </div>
+                  <div className="rounded-2xl border border-green-400/15 bg-black/20 px-3 py-2 text-right">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-green-300/50">Currency</p>
+                    <p className="mt-1 text-lg font-semibold text-green-300">{session.currency}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-xs uppercase tracking-[0.16em] text-green-300/50">Choose a method</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {PAYMENT_METHODS.map((option) => {
+                    const Icon = option.icon;
+                    const selected = option.id === method;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => onMethodChange(option.id)}
+                        className={[
+                          "rounded-2xl border px-4 py-4 text-left transition",
+                          selected
+                            ? "border-green-400 bg-green-500/12 text-white shadow-lg shadow-green-900/20"
+                            : "border-white/10 bg-white/5 text-green-200/70 hover:border-green-400/30 hover:bg-white/8",
+                        ].join(" ")}
+                      >
+                        <Icon size={18} className={selected ? "text-green-300" : "text-green-400/70"} />
+                        <p className="mt-3 text-sm font-semibold">{option.label}</p>
+                        <p className="mt-1 text-xs text-inherit/70">{option.hint}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-green-100/75">
+                <p className="font-medium text-white">What happens next</p>
+                <p className="mt-2 leading-relaxed">
+                  This free checkout flow opens before the order is created. In mock mode, payment is simulated safely for development. If Razorpay test keys are configured later, this switches to the hosted Razorpay test popup automatically.
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 px-6 py-5">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={busy}
+                  className="flex-1 rounded-2xl border border-white/12 bg-white/5 px-5 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  type="button"
+                  onClick={onConfirm}
+                  disabled={busy}
+                  whileHover={busy ? {} : { scale: 1.01 }}
+                  whileTap={busy ? {} : { scale: 0.98 }}
+                  className="flex-1 rounded-2xl bg-green-500 px-5 py-3 text-sm font-bold text-black shadow-xl shadow-green-500/20 transition hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {busy ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 size={16} className="animate-spin" />
+                      Processing…
+                    </span>
+                  ) : (
+                    `Pay ${session.displayAmount}`
+                  )}
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

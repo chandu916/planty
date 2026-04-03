@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronUp,
   Key,
+  CreditCard,
 } from "lucide-react";
 import { useUserStore } from "@/lib/userStore";
 import { useCallback, useEffect, useState } from "react";
@@ -34,6 +35,7 @@ import { z } from "zod";
 import Link from "next/link";
 import BackButton from "@/app/components/BackButton";
 import { triggerFormFeedback } from "@/lib/formFeedback";
+import { getPaymentBadgeLabel, type OrderPaymentSummary } from "@/lib/payment";
 import type { User as UserType } from "@/lib/schema";
 
 interface OrderItem {
@@ -45,7 +47,7 @@ interface OrderItem {
   quantity: number;
 }
 
-interface Order {
+interface Order extends OrderPaymentSummary {
   _id: string;
   items: OrderItem[];
   subtotal: number;
@@ -67,6 +69,12 @@ const STATUS_STYLES = {
   pending:  { bg: "bg-yellow-500/15 border-yellow-500/30 text-yellow-400",  icon: Clock,        label: "Pending" },
   accepted: { bg: "bg-green-500/15 border-green-500/30 text-green-400",    icon: CheckCircle,  label: "Accepted" },
   declined: { bg: "bg-red-500/15 border-red-500/30 text-red-400",          icon: XCircle,      label: "Declined" },
+};
+
+const PAYMENT_STYLES = {
+  paid: "bg-green-500/15 border-green-500/30 text-green-300",
+  mock_paid: "bg-sky-500/15 border-sky-500/30 text-sky-300",
+  not_recorded: "bg-zinc-500/15 border-zinc-500/25 text-zinc-300",
 };
 
 const indianStates = [
@@ -764,6 +772,10 @@ export default function ProfilePageClient() {
                               <StatusIcon size={10} />
                               {style.label}
                             </span>
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border font-medium ${PAYMENT_STYLES[order.paymentStatus]}`}>
+                              <CreditCard size={10} />
+                              {getPaymentBadgeLabel(order)}
+                            </span>
                             {order.status === "accepted" && (
                               <span className={`text-xs font-medium ${DELIVERY_LABELS[order.deliveryStatus]?.color ?? "text-zinc-400"}`}>
                                 🚚 {DELIVERY_LABELS[order.deliveryStatus]?.label ?? order.deliveryStatus}
@@ -805,6 +817,22 @@ export default function ProfilePageClient() {
                             <div className="flex justify-between text-xs font-semibold">
                               <span className="text-white">Total</span>
                               <span className="text-green-400">₹{order.total}</span>
+                            </div>
+                            <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-green-200/40">Payment</span>
+                                <span className="text-white/80">{order.paymentMethodLabel}</span>
+                              </div>
+                              <div className="mt-1 flex items-center justify-between gap-3">
+                                <span className="text-green-200/40">Reference</span>
+                                <span className="truncate text-white/60">{order.paymentReference ?? "Not recorded"}</span>
+                              </div>
+                              <div className="mt-1 flex items-center justify-between gap-3">
+                                <span className="text-green-200/40">Paid at</span>
+                                <span className="text-white/60">
+                                  {order.paidAt ? new Date(order.paidAt).toLocaleString("en-IN") : "Not recorded"}
+                                </span>
+                              </div>
                             </div>
                           </motion.div>
                         )}

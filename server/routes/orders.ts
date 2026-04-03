@@ -4,8 +4,10 @@
  * GET  /api/orders  — get orders for a user (by email)
  */
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
 import { z } from "zod";
 import { getDb } from "@/server/db/connection";
+import { normalizeOrderPaymentSummary } from "@/lib/payment";
 
 const orderItemSchema = z.object({
   id: z.string(),
@@ -16,12 +18,23 @@ const orderItemSchema = z.object({
   quantity: z.number().int().positive(),
 });
 
+const paymentSchema = z.object({
+  provider: z.enum(["mock", "razorpay"]),
+  status: z.enum(["mock_paid", "paid"]),
+  reference: z.string().min(6),
+  methodLabel: z.string().min(2),
+  paymentId: z.string().optional(),
+  orderId: z.string().optional(),
+  signature: z.string().optional(),
+});
+
 const placeOrderSchema = z.object({
   userEmail: z.string().email(),
   items: z.array(orderItemSchema).min(1, "Cart is empty"),
   subtotal: z.number().nonnegative(),
   deliveryFee: z.number().nonnegative(),
   total: z.number().positive(),
+  payment: paymentSchema,
 });
 
 export async function handlePlaceOrder(request: NextRequest): Promise<NextResponse> {
@@ -36,7 +49,35 @@ export async function handlePlaceOrder(request: NextRequest): Promise<NextRespon
       );
     }
 
-    const { userEmail, items, subtotal, deliveryFee, total } = parsed.data;
+    const { userEmail, items, subtotal, deliveryFee, total, payment } = parsed.data;
+
+    if (payment.provider === "razorpay") {
+      const secret = process.env.RAZORPAY_KEY_SECRET;
+      if (!secret || !payment.orderId || !payment.paymentId || !payment.signature) {
+        return NextResponse.json(
+          { success: false, message: "Payment verification details are incomplete." },
+          { status: 400 }
+        );
+      }
+
+      const expectedSignature = createHmac("sha256", secret)
+        .update(`${payment.orderId}|${payment.paymentId}`)
+        .digest("hex");
+
+      if (expectedSignature !== payment.signature) {
+        return NextResponse.json(
+          { success: false, message: "Payment verification failed. Order was not created." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (payment.provider === "mock" && !payment.reference.startsWith("mockpay_")) {
+      return NextResponse.json(
+        { success: false, message: "Mock payment is invalid. Please retry checkout." },
+        { status: 400 }
+      );
+    }
 
     const db = await getDb();
 
@@ -62,8 +103,15 @@ export async function handlePlaceOrder(request: NextRequest): Promise<NextRespon
       subtotal,
       deliveryFee,
       total,
+      paymentProvider: payment.provider,
+      paymentStatus: payment.status,
+      paymentReference: payment.reference,
+      paymentMethodLabel: payment.methodLabel,
+      paymentId: payment.paymentId ?? null,
+      paymentOrderId: payment.orderId ?? null,
       status: "pending",
       deliveryStatus: "not_shipped",
+      paidAt: now,
       createdAt: now,
       updatedAt: now,
     });
@@ -101,6 +149,13 @@ export async function handleGetUserOrders(request: NextRequest): Promise<NextRes
       .toArray();
 
     const orders = raw.map((o) => ({
+      ...normalizeOrderPaymentSummary({
+        paymentProvider: o.paymentProvider as string | undefined,
+        paymentStatus: o.paymentStatus as string | undefined,
+        paymentMethodLabel: o.paymentMethodLabel as string | undefined,
+        paymentReference: o.paymentReference as string | null | undefined,
+        paidAt: o.paidAt as string | null | undefined,
+      }),
       _id: o._id.toString(),
       userEmail: o.userEmail,
       userName: o.userName,
