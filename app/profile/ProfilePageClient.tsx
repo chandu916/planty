@@ -33,6 +33,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import BackButton from "@/app/components/BackButton";
+import { triggerFormFeedback } from "@/lib/formFeedback";
 import type { User as UserType } from "@/lib/schema";
 
 interface OrderItem {
@@ -193,6 +194,8 @@ export default function ProfilePageClient() {
     if (!user) return;
     if (newPassword !== confirmNewPassword) {
       setPwError("New passwords do not match.");
+      setPwStatus("error");
+      triggerFormFeedback({ sound: "error", haptic: true });
       return;
     }
     setPwStatus("saving");
@@ -206,6 +209,7 @@ export default function ProfilePageClient() {
       const json = await res.json();
       if (json.success) {
         setPwStatus("saved");
+        triggerFormFeedback({ sound: "default" });
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
@@ -213,10 +217,12 @@ export default function ProfilePageClient() {
       } else {
         setPwError(json.message || "Failed to update password.");
         setPwStatus("error");
+        triggerFormFeedback({ sound: "error", haptic: true });
       }
     } catch {
       setPwError("Network error. Please try again.");
       setPwStatus("error");
+      triggerFormFeedback({ sound: "error", haptic: true });
     }
   };
 
@@ -255,13 +261,21 @@ export default function ProfilePageClient() {
         });
         setSaveStatus("saved");
         setEditing(false);
+        triggerFormFeedback({ sound: "default" });
         setTimeout(() => setSaveStatus("idle"), 2000);
       } else {
         setSaveStatus("error");
+        triggerFormFeedback({ sound: "error", haptic: true });
       }
     } catch {
       setSaveStatus("error");
+      triggerFormFeedback({ sound: "error", haptic: true });
     }
+  };
+
+  const onInvalidSave = () => {
+    setSaveStatus("error");
+    triggerFormFeedback({ sound: "error", haptic: true });
   };
 
   return (
@@ -378,7 +392,7 @@ export default function ProfilePageClient() {
                   </motion.button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSave)} className="space-y-4">
+                <form onSubmit={handleSubmit(onSave, onInvalidSave)} className="space-y-4">
                   <div>
                     <label className="flex items-center gap-1.5 text-green-200/70 text-xs mb-1.5">
                       <User size={12} className="text-green-400" /> Full Name
@@ -463,6 +477,7 @@ export default function ProfilePageClient() {
                   </div>
 
                   <motion.button
+                    data-sound-submit="deferred"
                     type="submit"
                     disabled={saveStatus === "saving"}
                     whileHover={{ scale: 1.02 }}
@@ -675,6 +690,7 @@ export default function ProfilePageClient() {
                 )}
 
                 <motion.button
+                  data-sound-submit="deferred"
                   type="submit"
                   disabled={pwStatus === "saving"}
                   whileHover={{ scale: 1.02 }}

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { CheckCircle, Loader2, MapPin, Phone, Mail, User, AlertCircle, Lock, Eye, EyeOff } from "lucide-react";
+import { triggerFormFeedback } from "@/lib/formFeedback";
 import { useUserStore } from "@/lib/userStore";
 
 const schema = z.object({
@@ -65,6 +66,7 @@ export default function RegisterForm() {
       if (json.success) {
         setStatus("success");
         setServerMessage(json.message);
+        triggerFormFeedback({ sound: "auth" });
         loginUser({
           email: data.email,
           fullName: data.fullName,
@@ -85,11 +87,19 @@ export default function RegisterForm() {
         }
         setStatus("error");
         setServerMessage(json.message ?? "Please fix the errors above.");
+        triggerFormFeedback({ sound: "error", haptic: true });
       }
     } catch {
       setStatus("error");
       setServerMessage("Network error. Please try again.");
+      triggerFormFeedback({ sound: "error", haptic: true });
     }
+  };
+
+  const onInvalid = () => {
+    setStatus("error");
+    setServerMessage("Please fix the highlighted fields.");
+    triggerFormFeedback({ sound: "error", haptic: true });
   };
 
   return (
@@ -153,7 +163,7 @@ export default function RegisterForm() {
                 key="form"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(onSubmit, onInvalid)}
                 className="space-y-5"
               >
                 {/* Full Name */}
@@ -314,6 +324,7 @@ export default function RegisterForm() {
 
                 <motion.button
                   data-sound="auth"
+                  data-sound-submit="deferred"
                   type="submit"
                   disabled={status === "loading"}
                   whileHover={{ scale: status === "loading" ? 1 : 1.02, boxShadow: "0 0 30px rgba(74,222,128,0.4)" }}

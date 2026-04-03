@@ -1,22 +1,28 @@
 "use client";
 
 import { useEffect } from "react";
+import { FORM_FEEDBACK_EVENT, type FormFeedbackSound } from "@/lib/formFeedback";
 
 /**
  * Contextual click-sound engine.
  *
  * Sound types (set via data-sound="<type>" on any interactive element):
  *   auth       – Soft rising bell chime  (login / register buttons)
+ *   error      – Descending double alert  (invalid submit / form error)
  *   add-cart   – Two-tone reward "da-ding"  (add-to-cart)
  *   count-up   – Short upward chirp  (quantity + button)
  *   count-down – Short downward soft click  (quantity − button)
  *   delete     – Low thud + noise swipe  (remove/trash button)
  *   (default)  – Gentle water-droplet pluck  (everything else)
+ *
+ * Submit buttons can set data-sound-submit="deferred" to wait for explicit
+ * success/error feedback instead of playing immediately on pointer down.
  */
 export default function GlobalClickEffects() {
   useEffect(() => {
     let audioCtx: AudioContext | null = null;
     let noiseBuffer: AudioBuffer | null = null;
+    let lastInvalidFeedbackAt = 0;
 
     const isMobile =
       window.matchMedia("(pointer: coarse)").matches ||
@@ -69,6 +75,11 @@ export default function GlobalClickEffects() {
       c.release.setValueAtTime(0.1, now);
       c.connect(ctx.destination);
       return c;
+    };
+
+    const triggerErrorHaptic = () => {
+      if (quietMode || typeof navigator.vibrate !== "function") return;
+      navigator.vibrate([14, 26, 18]);
     };
 
     // ─── SOUND: auth ──────────────────────────────────────────────────────
@@ -230,6 +241,49 @@ export default function GlobalClickEffects() {
       chain(ns, filt, ng, dest); ns.start(now + 0.003); ns.stop(now + 0.14);
     };
 
+    // ─── SOUND: error ─────────────────────────────────────────────────────
+    // A familiar descending double alert with a restrained buzz tail.
+    const playError = async () => {
+      const ctx = await getCtx(); if (!ctx) return;
+      const now = ctx.currentTime + 0.001;
+      const vol = 0.24 * qv * mv;
+      const dest = makeComp(ctx, now);
+
+      const playTone = (start: number, fromHz: number, toHz: number, level: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(fromHz, start);
+        osc.frequency.exponentialRampToValueAtTime(toHz, start + 0.085);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1800, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(level, start + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.11);
+        chain(osc, filter, gain, dest);
+        osc.start(start);
+        osc.stop(start + 0.12);
+      };
+
+      playTone(now, 420, 250, vol);
+      playTone(now + 0.105, 360, 210, vol * 0.82);
+
+      const buzz = ctx.createBufferSource();
+      buzz.buffer = getNoise(ctx);
+      const buzzFilter = ctx.createBiquadFilter();
+      const buzzGain = ctx.createGain();
+      buzzFilter.type = "bandpass";
+      buzzFilter.frequency.setValueAtTime(190, now);
+      buzzFilter.Q.setValueAtTime(1.4, now);
+      buzzGain.gain.setValueAtTime(0.0001, now);
+      buzzGain.gain.linearRampToValueAtTime(vol * 0.18, now + 0.01);
+      buzzGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+      chain(buzz, buzzFilter, buzzGain, dest);
+      buzz.start(now);
+      buzz.stop(now + 0.18);
+    };
+
     // ─── SOUND: default — soft muted key tap ─────────────────────────────
     // A warm, very short "tock" inspired by macOS / Notion UI micro-interactions.
     // Fundamental sine at ~400 Hz decays in ~80 ms; a quiet triangle overtone adds
@@ -267,10 +321,11 @@ export default function GlobalClickEffects() {
     };
 
     // ─── Sound router ─────────────────────────────────────────────────────
-    const playSound = async (type: string) => {
+    const playSound = async (type: FormFeedbackSound | string) => {
       try {
         switch (type) {
           case "auth":       await playAuth();       break;
+          case "error":      await playError();      break;
           case "add-cart":   await playAddCart();    break;
           case "count-up":   await playCountUp();    break;
           case "count-down": await playCountDown();  break;
@@ -290,8 +345,29 @@ export default function GlobalClickEffects() {
         "button, a, [role='button'], [data-bubble='true'], [data-sound]",
       ) as HTMLElement | null;
       if (!el) return;
+      if (el.dataset.soundSubmit === "deferred") return;
       const type = el.dataset.sound ?? "default";
       void playSound(type);
+    };
+
+    const onFormFeedback = (event: Event) => {
+      const detail = (event as CustomEvent<{ sound?: FormFeedbackSound; haptic?: boolean }>).detail;
+      const sound = detail?.sound ?? "default";
+      if (detail?.haptic) triggerErrorHaptic();
+      void playSound(sound);
+    };
+
+    const onInvalid = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const form = target?.closest("form");
+      if (!form || form.dataset.formFeedback === "off") return;
+
+      const now = performance.now();
+      if (now - lastInvalidFeedbackAt < 120) return;
+      lastInvalidFeedbackAt = now;
+
+      triggerErrorHaptic();
+      void playSound("error");
     };
 
     // Pre-warm AudioContext on first interaction so subsequent calls are instant.
@@ -303,11 +379,15 @@ export default function GlobalClickEffects() {
     };
 
     window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener(FORM_FEEDBACK_EVENT, onFormFeedback as EventListener);
+    window.addEventListener("invalid", onInvalid, true);
     window.addEventListener("pointerdown", primeAudio,     true);
     window.addEventListener("keydown",     primeAudio,     true);
     window.addEventListener("touchstart",  primeAudio,     true);
     return () => {
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener(FORM_FEEDBACK_EVENT, onFormFeedback as EventListener);
+      window.removeEventListener("invalid", onInvalid, true);
       window.removeEventListener("pointerdown", primeAudio,     true);
       window.removeEventListener("keydown",     primeAudio,     true);
       window.removeEventListener("touchstart",  primeAudio,     true);

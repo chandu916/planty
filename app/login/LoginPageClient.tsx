@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackButton from "@/app/components/BackButton";
 import { useAdminStore } from "@/lib/adminStore";
+import { triggerFormFeedback } from "@/lib/formFeedback";
 import { useUserStore } from "@/lib/userStore";
 
 export default function LoginPageClient() {
@@ -38,6 +39,7 @@ export default function LoginPageClient() {
       if (adminJson.success && adminJson.admin) {
         useUserStore.getState().logout();
         loginAdmin(adminJson.admin);
+        triggerFormFeedback({ sound: "auth" });
         router.push("/admin");
         return;
       }
@@ -45,6 +47,7 @@ export default function LoginPageClient() {
       if (adminRes.status === 403) {
         setStatus("error");
         setErrorMsg(adminJson.message ?? "This admin account is disabled.");
+        triggerFormFeedback({ sound: "error", haptic: true });
         return;
       }
 
@@ -58,14 +61,17 @@ export default function LoginPageClient() {
       if (userJson.success && userJson.user) {
         useAdminStore.getState().logout();
         loginUser(userJson.user);
+        triggerFormFeedback({ sound: "auth" });
         router.push("/");
       } else {
         setStatus("error");
         setErrorMsg(userJson.message ?? adminJson.message ?? "Invalid email or password.");
+        triggerFormFeedback({ sound: "error", haptic: true });
       }
     } catch {
       setStatus("error");
       setErrorMsg("Network error. Please try again.");
+      triggerFormFeedback({ sound: "error", haptic: true });
     }
   };
 
@@ -150,6 +156,7 @@ export default function LoginPageClient() {
             {/* Submit */}
             <motion.button
               data-sound="auth"
+              data-sound-submit="deferred"
               type="submit"
               disabled={status === "loading"}
               whileHover={{ scale: 1.02 }}
