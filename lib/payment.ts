@@ -20,6 +20,14 @@ export type OrderPaymentSummary = {
   paidAt: string | null;
 };
 
+type OrderPaymentSummaryInput = {
+  paymentProvider?: string | null;
+  paymentStatus?: string | null;
+  paymentMethodLabel?: string | null;
+  paymentReference?: string | null;
+  paidAt?: string | null;
+};
+
 export type CheckoutSession = {
   provider: PaymentProvider;
   sessionId: string;
@@ -70,7 +78,7 @@ export type RazorpayCheckoutOptions = {
 };
 
 export function normalizeOrderPaymentSummary(
-  value: Partial<OrderPaymentSummary>,
+  value: OrderPaymentSummaryInput,
 ): OrderPaymentSummary {
   const paymentProvider: StoredPaymentProvider =
     value.paymentProvider === "mock" || value.paymentProvider === "razorpay"
