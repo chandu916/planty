@@ -592,29 +592,29 @@ function PaymentSheet({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 px-3 pb-3 pt-6 backdrop-blur-sm sm:items-center sm:p-4"
         >
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-lg overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(180deg,rgba(12,32,20,0.96),rgba(5,14,10,0.98))] shadow-2xl shadow-green-950/50"
+            className="flex w-full max-w-lg max-h-[calc(100dvh-0.75rem)] flex-col overflow-hidden rounded-[1.75rem] border border-white/12 bg-[linear-gradient(180deg,rgba(12,32,20,0.96),rgba(5,14,10,0.98))] shadow-2xl shadow-green-950/50 sm:max-h-[min(760px,calc(100dvh-2rem))] sm:rounded-[2rem]"
           >
-            <div className="border-b border-white/10 px-6 py-5">
+            <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="mb-2 inline-flex rounded-full border border-green-400/20 bg-green-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-green-300">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 inline-flex max-w-full rounded-full border border-green-400/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-green-300 sm:text-[11px] sm:tracking-[0.18em]">
                     {session.provider === "razorpay" ? "Razorpay Test Mode" : "Mock Checkout"}
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Complete Payment</h3>
-                  <p className="mt-1 text-sm text-green-200/60">{session.instructions ?? session.description}</p>
+                  <h3 className="text-xl font-bold text-white sm:text-2xl">Complete Payment</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-green-200/60">{session.instructions ?? session.description}</p>
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={busy}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-green-200/70 transition hover:border-red-400/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-green-200/70 transition hover:border-red-400/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Close payment sheet"
                 >
                   <X size={16} />
@@ -622,57 +622,59 @@ function PaymentSheet({
               </div>
             </div>
 
-            <div className="space-y-6 px-6 py-6">
-              <div className="rounded-3xl border border-green-400/15 bg-green-500/8 p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.16em] text-green-300/50">Amount to pay</p>
-                    <p className="mt-2 text-4xl font-black text-white">{session.displayAmount}</p>
-                    <p className="mt-2 text-sm text-green-200/60">{session.customer.name} · {session.customer.email}</p>
-                  </div>
-                  <div className="rounded-2xl border border-green-400/15 bg-black/20 px-3 py-2 text-right">
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-green-300/50">Currency</p>
-                    <p className="mt-1 text-lg font-semibold text-green-300">{session.currency}</p>
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="rounded-3xl border border-green-400/15 bg-green-500/8 p-4 sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-[0.16em] text-green-300/50">Amount to pay</p>
+                      <p className="mt-2 text-3xl font-black text-white sm:text-4xl">{session.displayAmount}</p>
+                      <p className="mt-2 break-words text-sm text-green-200/60">{session.customer.name} · {session.customer.email}</p>
+                    </div>
+                    <div className="w-fit rounded-2xl border border-green-400/15 bg-black/20 px-3 py-2 text-left sm:text-right">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-green-300/50">Currency</p>
+                      <p className="mt-1 text-lg font-semibold text-green-300">{session.currency}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <p className="mb-3 text-xs uppercase tracking-[0.16em] text-green-300/50">Choose a method</p>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {PAYMENT_METHODS.map((option) => {
-                    const Icon = option.icon;
-                    const selected = option.id === method;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => onMethodChange(option.id)}
-                        className={[
-                          "rounded-2xl border px-4 py-4 text-left transition",
-                          selected
-                            ? "border-green-400 bg-green-500/12 text-white shadow-lg shadow-green-900/20"
-                            : "border-white/10 bg-white/5 text-green-200/70 hover:border-green-400/30 hover:bg-white/8",
-                        ].join(" ")}
-                      >
-                        <Icon size={18} className={selected ? "text-green-300" : "text-green-400/70"} />
-                        <p className="mt-3 text-sm font-semibold">{option.label}</p>
-                        <p className="mt-1 text-xs text-inherit/70">{option.hint}</p>
-                      </button>
-                    );
-                  })}
+                <div>
+                  <p className="mb-3 text-xs uppercase tracking-[0.16em] text-green-300/50">Choose a method</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {PAYMENT_METHODS.map((option) => {
+                      const Icon = option.icon;
+                      const selected = option.id === method;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => onMethodChange(option.id)}
+                          className={[
+                            "rounded-2xl border px-4 py-4 text-left transition",
+                            selected
+                              ? "border-green-400 bg-green-500/12 text-white shadow-lg shadow-green-900/20"
+                              : "border-white/10 bg-white/5 text-green-200/70 hover:border-green-400/30 hover:bg-white/8",
+                          ].join(" ")}
+                        >
+                          <Icon size={18} className={selected ? "text-green-300" : "text-green-400/70"} />
+                          <p className="mt-3 text-sm font-semibold">{option.label}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-inherit/70">{option.hint}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-green-100/75">
-                <p className="font-medium text-white">What happens next</p>
-                <p className="mt-2 leading-relaxed">
-                  This free checkout flow opens before the order is created. In mock mode, payment is simulated safely for development. If Razorpay test keys are configured later, this switches to the hosted Razorpay test popup automatically.
-                </p>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-green-100/75">
+                  <p className="font-medium text-white">What happens next</p>
+                  <p className="mt-2 leading-relaxed">
+                    This free checkout flow opens before the order is created. In mock mode, payment is simulated safely for development. If Razorpay test keys are configured later, this switches to the hosted Razorpay test popup automatically.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="border-t border-white/10 px-6 py-5">
+            <div className="border-t border-white/10 px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
