@@ -1,0 +1,13 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#081A22"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#E6EFEF"/>
+  <rect x="1008" y="176" width="280" height="736" rx="38" fill="#D1E1E1"/>
+  <ellipse cx="718" cy="784" rx="356" ry="136" fill="#3F7E8F"/>
+  <ellipse cx="718" cy="792" rx="322" ry="110" fill="#4A9BB0"/>
+  <circle cx="668" cy="690" r="96" fill="#E9A6BF"/>
+  <circle cx="744" cy="690" r="96" fill="#F2BCD0"/>
+  <circle cx="706" cy="624" r="86" fill="#F2D36F"/>
+  <path d="M706 622C700 676 698 728 702 782" stroke="#5A9A58" stroke-width="14" stroke-linecap="round"/>
+  <text x="150" y="176" fill="#28414B" font-family="Georgia, serif" font-size="54">Water Bowl Styling</text>
+  <text x="150" y="240" fill="#5D767C" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">QUIET ENTRYWAY WITH CERAMIC BASIN</text>
+</svg>

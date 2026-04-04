@@ -16,6 +16,14 @@ export interface Plant {
   badge?: string;
 }
 
+export interface PlantCatalogItem extends Plant {
+  categoryId: string;
+  categoryName: string;
+  categoryEmoji: string;
+  categoryDescription: string;
+  gradient: string;
+}
+
 export const plantCategories: PlantCategory[] = [
   {
     id: "bonsai",
@@ -216,3 +224,57 @@ export const plantCategories: PlantCategory[] = [
     ],
   },
 ];
+
+export const plantCatalog: PlantCatalogItem[] = plantCategories.flatMap((category) =>
+  category.plants.map((plant) => ({
+    ...plant,
+    categoryId: category.id,
+    categoryName: category.name,
+    categoryEmoji: category.emoji,
+    categoryDescription: category.description,
+    gradient: category.gradient,
+  })),
+);
+
+function scorePlantMatch(plant: PlantCatalogItem, terms: string[]) {
+  const haystack = [
+    plant.name,
+    plant.description,
+    plant.care,
+    plant.badge ?? "",
+    plant.categoryName,
+    plant.categoryDescription,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  let score = 0;
+  for (const term of terms) {
+    if (plant.name.toLowerCase().includes(term)) score += 5;
+    if (plant.categoryName.toLowerCase().includes(term)) score += 3;
+    if (haystack.includes(term)) score += 1;
+  }
+
+  return score;
+}
+
+export function searchPlantCatalog(query: string) {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    return plantCatalog;
+  }
+
+  const terms = normalized.split(/\s+/).filter(Boolean);
+
+  return plantCatalog
+    .filter((plant) => terms.every((term) => scorePlantMatch(plant, [term]) > 0))
+    .sort((first, second) => {
+      const scoreDelta = scorePlantMatch(second, terms) - scorePlantMatch(first, terms);
+      if (scoreDelta !== 0) return scoreDelta;
+      return first.price - second.price;
+    });
+}
+
+export function getPlantById(id: string) {
+  return plantCatalog.find((plant) => plant.id === id) ?? null;
+}

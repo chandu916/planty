@@ -1,0 +1,23 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#17170E"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="url(#bg)"/>
+  <circle cx="1240" cy="244" r="170" fill="#FFF3CA" fill-opacity="0.16"/>
+  <rect x="488" y="800" width="624" height="124" rx="28" fill="#785845"/>
+  <path d="M676 786C682 662 690 560 708 430" stroke="#649257" stroke-width="18" stroke-linecap="round"/>
+  <path d="M800 786C804 648 816 540 844 398" stroke="#649257" stroke-width="18" stroke-linecap="round"/>
+  <path d="M930 786C930 660 944 554 972 438" stroke="#649257" stroke-width="18" stroke-linecap="round"/>
+  <ellipse cx="642" cy="404" rx="80" ry="46" fill="#83B86A"/>
+  <ellipse cx="748" cy="344" rx="80" ry="46" fill="#91C675"/>
+  <ellipse cx="854" cy="382" rx="80" ry="46" fill="#77AC61"/>
+  <ellipse cx="960" cy="424" rx="80" ry="46" fill="#8FC472"/>
+  <ellipse cx="730" cy="520" rx="80" ry="46" fill="#7FB369"/>
+  <ellipse cx="906" cy="548" rx="80" ry="46" fill="#88BA70"/>
+  <text x="144" y="190" fill="#FBF9F0" font-family="Georgia, serif" font-size="56">Kitchen Herb Studio</text>
+  <text x="144" y="258" fill="#DDD7C4" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">FRESH CUT GREENS IN EVERYDAY LIGHT</text>
+  <defs>
+    <linearGradient id="bg" x1="110" y1="116" x2="1412" y2="1050" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2C2A17"/>
+      <stop offset="1" stop-color="#191911"/>
+    </linearGradient>
+  </defs>
+</svg>

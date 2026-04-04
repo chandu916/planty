@@ -118,6 +118,24 @@ const passwordResetValidator = {
   },
 };
 
+const plantReviewsValidator = {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["plantId", "userEmail", "userName", "rating", "comment", "createdAt", "updatedAt", "orderId"],
+    additionalProperties: true,
+    properties: {
+      plantId: { bsonType: "string" },
+      userEmail: { bsonType: "string" },
+      userName: { bsonType: "string" },
+      rating: { bsonType: "int", minimum: 1, maximum: 5 },
+      comment: { bsonType: "string", minLength: 8 },
+      orderId: { bsonType: "string" },
+      createdAt: { bsonType: "string" },
+      updatedAt: { bsonType: "string" },
+    },
+  },
+};
+
 // ─── Main init function ───────────────────────────────────────────────────────
 
 export async function setupDatabase(): Promise<{ message: string; details: string[] }> {
@@ -266,6 +284,24 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
   await passwordResetCol.createIndex({ userEmail: 1 }, { name: "userEmail_idx" });
   await passwordResetCol.createIndex({ expiresAt: 1 }, { name: "expiresAt_idx" });
   log.push("✓ Indexes ready: password_reset_tokens.tokenHash (unique), password_reset_tokens.userEmail, password_reset_tokens.expiresAt");
+
+  // ── plant_reviews collection ────────────────────────────────────────────
+  if (!existingCollections.includes("plant_reviews")) {
+    await db.createCollection("plant_reviews", { validator: plantReviewsValidator });
+    log.push("✓ Created collection: plant_reviews");
+  } else {
+    try {
+      await db.command({ collMod: "plant_reviews", validator: plantReviewsValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: plant_reviews (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection plant_reviews exists (validator update skipped — insufficient permissions)");
+    }
+  }
+
+  const plantReviewsCol = db.collection("plant_reviews");
+  await plantReviewsCol.createIndex({ plantId: 1, createdAt: -1 }, { name: "plantId_createdAt_idx" });
+  await plantReviewsCol.createIndex({ plantId: 1, userEmail: 1 }, { unique: true, name: "plantId_userEmail_unique" });
+  log.push("✓ Indexes ready: plant_reviews.plantId+createdAt, plant_reviews.plantId+userEmail (unique)");
 
   // ── Seed default superadmin (only if no admin exists) ─────────────────────
   const adminCount = await adminsCol.countDocuments();

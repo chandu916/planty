@@ -1,0 +1,11 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#14190F"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#202618"/>
+  <path d="M804 918L914 496L1026 918" fill="#6C9753"/>
+  <path d="M654 894L804 468L928 902" fill="#7DA85F"/>
+  <path d="M520 870L724 540L820 902" fill="#8CB76C"/>
+  <path d="M940 886L1090 548L1208 904" fill="#5C824A"/>
+  <circle cx="1184" cy="326" r="124" fill="#FFE9B5" fill-opacity="0.14"/>
+  <text x="144" y="188" fill="#FBF8ED" font-family="Georgia, serif" font-size="56">Texture Detail</text>
+  <text x="144" y="254" fill="#D7D1BE" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">THICK LEAVES, MATTE SURFACE, DESERT FORM</text>
+</svg>

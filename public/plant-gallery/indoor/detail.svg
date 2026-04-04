@@ -1,0 +1,11 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#0E1816"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#192723"/>
+  <path d="M544 254C648 302 752 408 820 522" stroke="#7FB97B" stroke-width="52" stroke-linecap="round"/>
+  <path d="M1060 250C956 298 852 404 784 518" stroke="#74AE71" stroke-width="52" stroke-linecap="round"/>
+  <path d="M640 562C712 540 778 548 836 586" stroke="#90C58A" stroke-width="24" stroke-linecap="round"/>
+  <path d="M864 590C934 572 1000 584 1064 632" stroke="#90C58A" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="1228" cy="260" r="142" fill="#D9EADA" fill-opacity="0.14"/>
+  <text x="144" y="188" fill="#F4F8F4" font-family="Georgia, serif" font-size="56">Leaf Split Detail</text>
+  <text x="144" y="254" fill="#C3D1C5" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">RIBBED TEXTURE AND ARCHING GREEN FORM</text>
+</svg>

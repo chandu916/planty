@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   User,
   Mail,
@@ -16,67 +16,22 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ShoppingBag,
-  Clock,
-  XCircle,
-  PackageOpen,
-  ChevronDown,
-  ChevronUp,
   Key,
-  CreditCard,
+  ArrowRight,
+  Heart,
+  Package,
+  TicketPercent,
 } from "lucide-react";
 import { useUserStore } from "@/lib/userStore";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import BackButton from "@/app/components/BackButton";
+import AccountShell from "./components/AccountShell";
 import { triggerFormFeedback } from "@/lib/formFeedback";
-import { getPaymentBadgeLabel, type OrderPaymentSummary } from "@/lib/payment";
 import type { User as UserType } from "@/lib/schema";
-
-interface OrderItem {
-  id: string;
-  name: string;
-  emoji: string;
-  categoryName: string;
-  price: number;
-  quantity: number;
-}
-
-interface Order extends OrderPaymentSummary {
-  _id: string;
-  items: OrderItem[];
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
-  status: "pending" | "accepted" | "declined";
-  deliveryStatus: "not_shipped" | "shipped" | "out_for_delivery" | "delivered";
-  createdAt: string;
-}
-
-const DELIVERY_LABELS: Record<string, { label: string; color: string }> = {
-  not_shipped:      { label: "Not Shipped",      color: "text-zinc-400" },
-  shipped:          { label: "Shipped",          color: "text-blue-400" },
-  out_for_delivery: { label: "Out for Delivery", color: "text-orange-400" },
-  delivered:        { label: "Delivered",        color: "text-green-400" },
-};
-
-const STATUS_STYLES = {
-  pending:  { bg: "bg-yellow-500/15 border-yellow-500/30 text-yellow-400",  icon: Clock,        label: "Pending" },
-  accepted: { bg: "bg-green-500/15 border-green-500/30 text-green-400",    icon: CheckCircle,  label: "Accepted" },
-  declined: { bg: "bg-red-500/15 border-red-500/30 text-red-400",          icon: XCircle,      label: "Declined" },
-};
-
-const PAYMENT_STYLES = {
-  paid: "bg-green-500/15 border-green-500/30 text-green-300",
-  mock_paid: "bg-sky-500/15 border-sky-500/30 text-sky-300",
-  not_recorded: "bg-zinc-500/15 border-zinc-500/25 text-zinc-300",
-};
 
 const indianStates = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
@@ -151,11 +106,6 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [fetchError, setFetchError] = useState("");
 
-  // Orders state
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
   // Change password state
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -173,18 +123,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
     formState: { errors },
   } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
 
-  const fetchOrders = useCallback(async () => {
-    setOrdersLoading(true);
-    try {
-      const res = await fetch("/api/orders");
-      const json = await res.json();
-      if (json.success) setOrders(json.orders);
-    } finally {
-      setOrdersLoading(false);
-    }
-  }, []);
-
-  const fetchUser = useCallback(async () => {
+  const fetchUser = async () => {
     setLoading(true);
     setFetchError("");
     try {
@@ -200,7 +139,6 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
           state: json.user.state,
           pincode: json.user.pincode,
         });
-        await fetchOrders();
       } else {
         setFetchError(json.message || "User not found. Please register first.");
       }
@@ -209,7 +147,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
     } finally {
       setLoading(false);
     }
-  }, [fetchOrders, reset]);
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,14 +198,13 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
 
     if (!hasActiveSession || !email) {
       setUser(null);
-      setOrders([]);
       setFetchError("");
       setShowPasswordSection(false);
       return;
     }
 
     void fetchUser();
-  }, [fetchUser, hasActiveSession, initialUser.email, loggedInUser?.email]);
+  }, [hasActiveSession, initialUser.email, loggedInUser?.email]);
 
   const onSave = async (data: EditForm) => {
     if (!user) return;
@@ -310,29 +247,18 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-transparent">
-      <Navbar />
-
-      <div className="flex-1 pt-24 pb-16 px-4 sm:px-6 max-w-2xl mx-auto w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          <BackButton fallbackHref="/" label="Back" className="mb-4" />
-          <h1 className="text-3xl sm:text-4xl font-bold text-white flex items-center gap-3">
-            <User className="text-green-400" size={32} />
-            My Profile
-          </h1>
-        </motion.div>
+    <AccountShell
+      title="My Profile"
+      description="Manage your delivery details, protect your password, and move between orders, coupons, and wishlist from one premium account space."
+    >
+      <div className="mx-auto max-w-3xl">
 
         {!hasActiveSession ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/5 border border-white/10 rounded-2xl p-8"
+            className="rounded-[28px] border border-white/10 bg-white/5 p-8"
           >
             <div className="flex flex-col items-center gap-3 mb-8 text-center">
               <motion.div
@@ -373,7 +299,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/5 border border-white/10 rounded-2xl p-8 flex items-center justify-center gap-3 text-green-300/70"
+            className="flex items-center justify-center gap-3 rounded-[28px] border border-white/10 bg-white/5 p-8 text-green-300/70"
           >
             <Loader2 size={18} className="animate-spin" />
             Loading your profile...
@@ -383,7 +309,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white/5 border border-white/10 rounded-2xl p-8"
+            className="rounded-[28px] border border-white/10 bg-white/5 p-8"
           >
             <div className="flex items-center gap-2 text-red-400 text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20">
               <AlertCircle size={14} />
@@ -399,7 +325,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -30 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6"
+                className="rounded-[28px] border border-white/10 bg-white/5 p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold text-white">Edit Details</h2>
@@ -533,7 +459,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 30 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4"
+                className="space-y-5 rounded-[28px] border border-white/10 bg-white/5 p-6"
               >
                 {/* Profile header */}
                 <div className="flex items-center justify-between pb-4 border-b border-white/10">
@@ -595,6 +521,35 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
                   />
                 </div>
 
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Link href="/profile/orders">
+                    <div className="rounded-2xl border border-sky-400/15 bg-sky-500/[0.05] p-4 transition hover:border-sky-400/30 hover:bg-sky-500/[0.08]">
+                      <Package className="text-sky-300" size={18} />
+                      <p className="mt-3 text-sm font-semibold text-white">Orders</p>
+                      <p className="mt-1 text-xs leading-5 text-green-100/45">Track order progress and payment receipts.</p>
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-sky-200">Open <ArrowRight size={12} /></span>
+                    </div>
+                  </Link>
+
+                  <Link href="/profile/coupons">
+                    <div className="rounded-2xl border border-amber-400/15 bg-amber-500/[0.05] p-4 transition hover:border-amber-400/30 hover:bg-amber-500/[0.08]">
+                      <TicketPercent className="text-amber-300" size={18} />
+                      <p className="mt-3 text-sm font-semibold text-white">Coupons</p>
+                      <p className="mt-1 text-xs leading-5 text-green-100/45">See active savings for seasonal plant drops.</p>
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-amber-200">Open <ArrowRight size={12} /></span>
+                    </div>
+                  </Link>
+
+                  <Link href="/profile/wishlist">
+                    <div className="rounded-2xl border border-rose-400/15 bg-rose-500/[0.05] p-4 transition hover:border-rose-400/30 hover:bg-rose-500/[0.08]">
+                      <Heart className="text-rose-300" size={18} />
+                      <p className="mt-3 text-sm font-semibold text-white">Wishlist</p>
+                      <p className="mt-1 text-xs leading-5 text-green-100/45">Save plants you want to revisit later.</p>
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-rose-200">Open <ArrowRight size={12} /></span>
+                    </div>
+                  </Link>
+                </div>
+
                 <div className="pt-2 space-y-3">
                   {/* Change Password toggle */}
                   <motion.button
@@ -615,7 +570,6 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
                       void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
                       logout();
                       setUser(null);
-                      setOrders([]);
                       setShowPasswordSection(false);
                       router.push("/");
                     }}
@@ -635,7 +589,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 bg-white/5 border border-white/10 rounded-2xl p-6"
+            className="mt-4 rounded-[28px] border border-white/10 bg-white/5 p-6"
           >
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -743,135 +697,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
             )}
           </motion.div>
         )}
-
-        {/* ── Order History ─────────────────────────────────── */}
-        {user && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-6"
-          >
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-              <ShoppingBag size={18} className="text-green-400" />
-              My Orders
-            </h2>
-
-            {ordersLoading ? (
-              <div className="flex items-center justify-center py-12 text-green-400/40">
-                <Loader2 size={20} className="animate-spin mr-2" />
-                Loading orders…
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="flex flex-col items-center gap-4 py-12 text-center bg-white/5 border border-white/10 rounded-2xl">
-                <PackageOpen size={40} className="text-green-400/20" />
-                <p className="text-green-200/40 text-sm">No orders yet. Start shopping!</p>
-                <Link href="/">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="px-5 py-2 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium"
-                  >
-                    Explore Plants
-                  </motion.div>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {orders.map((order) => {
-                  const style = STATUS_STYLES[order.status];
-                  const StatusIcon = style.icon;
-                  const isExpanded = expandedOrder === order._id;
-                  return (
-                    <motion.div
-                      key={order._id}
-                      layout
-                      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden"
-                    >
-                      <div
-                        className="flex items-center justify-between p-4 cursor-pointer"
-                        onClick={() => setExpandedOrder(isExpanded ? null : order._id)}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border font-medium ${style.bg}`}>
-                              <StatusIcon size={10} />
-                              {style.label}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border font-medium ${PAYMENT_STYLES[order.paymentStatus]}`}>
-                              <CreditCard size={10} />
-                              {getPaymentBadgeLabel(order)}
-                            </span>
-                            {order.status === "accepted" && (
-                              <span className={`text-xs font-medium ${DELIVERY_LABELS[order.deliveryStatus]?.color ?? "text-zinc-400"}`}>
-                                🚚 {DELIVERY_LABELS[order.deliveryStatus]?.label ?? order.deliveryStatus}
-                              </span>
-                            )}
-                            <span className="text-white font-semibold text-sm">₹{order.total}</span>
-                            <span className="text-green-200/40 text-xs">
-                              {order.items.length} item{order.items.length !== 1 ? "s" : ""}
-                            </span>
-                          </div>
-                          <p className="text-green-200/40 text-xs mt-1">
-                            {new Date(order.createdAt).toLocaleString("en-IN")}
-                          </p>
-                        </div>
-                        <div className="text-green-200/40 ml-3">
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </div>
-                      </div>
-
-                      <AnimatePresence>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden border-t border-white/10 px-4 pb-4 pt-3 space-y-1"
-                          >
-                            {order.items.map((item) => (
-                              <div key={item.id} className="flex justify-between text-xs">
-                                <span className="text-white/70">{item.emoji} {item.name} ×{item.quantity}</span>
-                                <span className="text-green-400">₹{item.price * item.quantity}</span>
-                              </div>
-                            ))}
-                            <div className="flex justify-between text-xs pt-1 border-t border-white/10">
-                              <span className="text-green-200/40">Delivery</span>
-                              <span className="text-white/50">{order.deliveryFee === 0 ? "FREE" : `₹${order.deliveryFee}`}</span>
-                            </div>
-                            <div className="flex justify-between text-xs font-semibold">
-                              <span className="text-white">Total</span>
-                              <span className="text-green-400">₹{order.total}</span>
-                            </div>
-                            <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs">
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-green-200/40">Payment</span>
-                                <span className="text-white/80">{order.paymentMethodLabel}</span>
-                              </div>
-                              <div className="mt-1 flex items-center justify-between gap-3">
-                                <span className="text-green-200/40">Reference</span>
-                                <span className="truncate text-white/60">{order.paymentReference ?? "Not recorded"}</span>
-                              </div>
-                              <div className="mt-1 flex items-center justify-between gap-3">
-                                <span className="text-green-200/40">Paid at</span>
-                                <span className="text-white/60">
-                                  {order.paidAt ? new Date(order.paidAt).toLocaleString("en-IN") : "Not recorded"}
-                                </span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        )}
       </div>
-
-      <Footer minimal />
-    </main>
+    </AccountShell>
   );
 }

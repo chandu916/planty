@@ -1,0 +1,14 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#16160F"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#EFE4D0"/>
+  <rect x="1032" y="180" width="264" height="724" rx="34" fill="#DDCFB9"/>
+  <rect x="454" y="808" width="716" height="112" rx="26" fill="#7A5C47"/>
+  <path d="M646 796C650 684 660 582 678 470" stroke="#678F58" stroke-width="16" stroke-linecap="round"/>
+  <path d="M804 796C808 676 820 566 840 440" stroke="#678F58" stroke-width="16" stroke-linecap="round"/>
+  <path d="M964 796C966 690 978 592 996 486" stroke="#678F58" stroke-width="16" stroke-linecap="round"/>
+  <ellipse cx="620" cy="444" rx="74" ry="42" fill="#84B86B"/>
+  <ellipse cx="774" cy="390" rx="74" ry="42" fill="#93C877"/>
+  <ellipse cx="936" cy="430" rx="74" ry="42" fill="#7CB165"/>
+  <text x="150" y="176" fill="#383229" font-family="Georgia, serif" font-size="54">Countertop Styling</text>
+  <text x="150" y="240" fill="#71665A" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">SUNLIT KITCHEN CORNER FOR DAILY PICKING</text>
+</svg>

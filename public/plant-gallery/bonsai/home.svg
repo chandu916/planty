@@ -1,0 +1,17 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#111913"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#E9E0D2"/>
+  <rect x="954" y="198" width="348" height="604" rx="34" fill="#D8C8B2"/>
+  <rect x="244" y="816" width="916" height="112" rx="26" fill="#6A4A32"/>
+  <rect x="530" y="706" width="360" height="134" rx="30" fill="#7B573B"/>
+  <path d="M710 358C674 448 665 530 678 684" stroke="#6A442A" stroke-width="28" stroke-linecap="round"/>
+  <path d="M716 470C628 430 560 444 502 510" stroke="#6A442A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M720 432C808 400 890 408 970 482" stroke="#6A442A" stroke-width="18" stroke-linecap="round"/>
+  <ellipse cx="508" cy="516" rx="108" ry="76" fill="#648E58"/>
+  <ellipse cx="646" cy="440" rx="126" ry="92" fill="#7AAA69"/>
+  <ellipse cx="812" cy="402" rx="132" ry="100" fill="#87B875"/>
+  <ellipse cx="952" cy="500" rx="118" ry="84" fill="#628F57"/>
+  <ellipse cx="820" cy="582" rx="144" ry="98" fill="#71A561"/>
+  <text x="150" y="176" fill="#2E2B27" font-family="Georgia, serif" font-size="54">Styled Home Placement</text>
+  <text x="150" y="240" fill="#645C53" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">SOFT WALL LIGHT AND WOOD FINISH</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#1D1217"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="url(#bg)"/>
+  <circle cx="1240" cy="252" r="170" fill="#FFE4F1" fill-opacity="0.18"/>
+  <rect x="550" y="796" width="500" height="120" rx="28" fill="#765044"/>
+  <path d="M804 352C792 470 792 584 808 794" stroke="#4D7F4A" stroke-width="24" stroke-linecap="round"/>
+  <path d="M808 540C720 510 654 528 594 602" stroke="#4D7F4A" stroke-width="16" stroke-linecap="round"/>
+  <path d="M810 496C898 468 976 486 1036 562" stroke="#4D7F4A" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="804" cy="340" r="88" fill="#F8E06A"/>
+  <circle cx="732" cy="338" r="80" fill="#F06E9E"/>
+  <circle cx="874" cy="338" r="80" fill="#F06E9E"/>
+  <circle cx="774" cy="270" r="80" fill="#F4A3C1"/>
+  <circle cx="836" cy="270" r="80" fill="#F4A3C1"/>
+  <circle cx="650" cy="586" r="74" fill="#FF8BB5"/>
+  <circle cx="1020" cy="550" r="74" fill="#FF8BB5"/>
+  <text x="144" y="190" fill="#FFF7FA" font-family="Georgia, serif" font-size="56">Planty Flower Studio</text>
+  <text x="144" y="258" fill="#F0D3DF" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">BLOOMS WITH SOFT RETAIL LIGHT</text>
+  <defs>
+    <linearGradient id="bg" x1="120" y1="120" x2="1420" y2="1050" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#472231"/>
+      <stop offset="1" stop-color="#24151D"/>
+    </linearGradient>
+  </defs>
+</svg>

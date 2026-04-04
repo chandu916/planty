@@ -175,6 +175,7 @@ export default function CategoryPageClient({
               <PlantCard
                 key={plant.id}
                 plant={plant}
+                categoryId={category.id}
                 categoryName={category.name}
                 categoryEmoji={category.emoji}
                 delay={i * 0.08}

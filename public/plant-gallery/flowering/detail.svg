@@ -1,0 +1,15 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#20131A"/>
+  <rect x="74" y="74" width="1452" height="1052" rx="54" fill="#341B25"/>
+  <circle cx="826" cy="518" r="116" fill="#F8DE70"/>
+  <circle cx="690" cy="514" r="112" fill="#EE7EAD"/>
+  <circle cx="960" cy="514" r="112" fill="#EE7EAD"/>
+  <circle cx="760" cy="392" r="112" fill="#F2A4C3"/>
+  <circle cx="892" cy="392" r="112" fill="#F2A4C3"/>
+  <circle cx="760" cy="642" r="112" fill="#E5659A"/>
+  <circle cx="892" cy="642" r="112" fill="#E5659A"/>
+  <path d="M820 650C814 740 810 820 810 908" stroke="#59884D" stroke-width="22" stroke-linecap="round"/>
+  <path d="M730 798C776 760 822 758 876 792" stroke="#5D8E50" stroke-width="14" stroke-linecap="round"/>
+  <text x="144" y="188" fill="#FFF6FA" font-family="Georgia, serif" font-size="56">Petal Detail</text>
+  <text x="144" y="254" fill="#EDCFDB" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">LAYERED BLOOM WITH HIGH COLOR CONTRAST</text>
+</svg>

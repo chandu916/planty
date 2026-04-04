@@ -334,3 +334,19 @@ html {
 .input-icon-button::after {
   content: none !important;
 }
+
+.unstyled-action,
+.unstyled-action:hover,
+.unstyled-action:active,
+.unstyled-action:focus-visible {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  isolation: auto;
+}
+
+.unstyled-action::before,
+.unstyled-action::after {
+  content: none !important;
+}

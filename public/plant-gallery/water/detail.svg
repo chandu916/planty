@@ -1,0 +1,13 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#091C24"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#103140"/>
+  <ellipse cx="804" cy="820" rx="534" ry="202" fill="#205E70"/>
+  <circle cx="792" cy="508" r="148" fill="#F2B5C7"/>
+  <circle cx="926" cy="514" r="148" fill="#E793B0"/>
+  <circle cx="858" cy="392" r="132" fill="#F4D374"/>
+  <ellipse cx="704" cy="614" rx="170" ry="76" fill="#6EAD9E" fill-opacity="0.8"/>
+  <path d="M852 388C822 484 806 568 798 656" stroke="#63A45F" stroke-width="18" stroke-linecap="round"/>
+  <path d="M938 632C1014 688 1062 760 1084 848" stroke="#89C6BF" stroke-width="12" stroke-linecap="round" stroke-opacity="0.8"/>
+  <text x="144" y="188" fill="#F2FBFC" font-family="Georgia, serif" font-size="56">Floating Detail</text>
+  <text x="144" y="254" fill="#C1DADF" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">BLOOM TEXTURE OVER REFLECTIVE WATER</text>
+</svg>

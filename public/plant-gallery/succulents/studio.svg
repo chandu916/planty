@@ -1,0 +1,20 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#15190E"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="url(#bg)"/>
+  <circle cx="1244" cy="242" r="174" fill="#FFF1C4" fill-opacity="0.15"/>
+  <rect x="356" y="824" width="882" height="96" rx="26" fill="#5E4731"/>
+  <path d="M694 776L760 494L826 776" fill="#77A75D"/>
+  <path d="M592 760L704 516L788 764" fill="#8BB36B"/>
+  <path d="M804 760L896 516L1006 760" fill="#6E9854"/>
+  <path d="M714 744L804 398L892 744" fill="#96C274"/>
+  <circle cx="980" cy="600" r="86" fill="#C8A84F"/>
+  <circle cx="980" cy="600" r="64" fill="#A78737"/>
+  <text x="144" y="190" fill="#FBF8ED" font-family="Georgia, serif" font-size="56">Succulent Shelf Studio</text>
+  <text x="144" y="258" fill="#DED4BA" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">DRY LIGHT, CLEAN SHADOWS, MODERN POTTERY</text>
+  <defs>
+    <linearGradient id="bg" x1="110" y1="112" x2="1416" y2="1054" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2A341A"/>
+      <stop offset="1" stop-color="#181B12"/>
+    </linearGradient>
+  </defs>
+</svg>

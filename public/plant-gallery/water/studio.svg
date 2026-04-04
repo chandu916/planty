@@ -1,0 +1,21 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#091923"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="url(#bg)"/>
+  <ellipse cx="802" cy="700" rx="448" ry="176" fill="#255767"/>
+  <ellipse cx="802" cy="716" rx="410" ry="138" fill="#2B7186"/>
+  <ellipse cx="802" cy="678" rx="162" ry="62" fill="#6DAAA4" fill-opacity="0.65"/>
+  <circle cx="760" cy="580" r="124" fill="#E9A4BA"/>
+  <circle cx="852" cy="580" r="124" fill="#F1B9CA"/>
+  <circle cx="806" cy="500" r="112" fill="#F4D16F"/>
+  <path d="M806 486C806 538 798 604 776 660" stroke="#5A9E59" stroke-width="18" stroke-linecap="round"/>
+  <path d="M810 492C832 554 846 610 846 674" stroke="#5A9E59" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="1230" cy="246" r="170" fill="#D9F4F6" fill-opacity="0.16"/>
+  <text x="144" y="190" fill="#F3FBFC" font-family="Georgia, serif" font-size="56">Water Garden Studio</text>
+  <text x="144" y="258" fill="#C4DEE2" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">FLOATING DISPLAY WITH STILL WATER</text>
+  <defs>
+    <linearGradient id="bg" x1="120" y1="110" x2="1412" y2="1054" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123848"/>
+      <stop offset="1" stop-color="#0A1E27"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,23 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#0E1712"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="url(#bg)"/>
+  <circle cx="1230" cy="246" r="162" fill="#D7E7C5" fill-opacity="0.16"/>
+  <rect x="274" y="856" width="1052" height="94" rx="28" fill="#392818"/>
+  <rect x="525" y="742" width="550" height="154" rx="32" fill="#6A4A2F"/>
+  <path d="M807 372C760 452 748 532 758 655" stroke="#6E472A" stroke-width="34" stroke-linecap="round"/>
+  <path d="M810 490C710 458 634 488 575 566" stroke="#6E472A" stroke-width="22" stroke-linecap="round"/>
+  <path d="M816 450C914 411 1006 430 1081 514" stroke="#6E472A" stroke-width="22" stroke-linecap="round"/>
+  <ellipse cx="582" cy="566" rx="116" ry="82" fill="#4A7E42"/>
+  <ellipse cx="708" cy="486" rx="132" ry="95" fill="#5B934F"/>
+  <ellipse cx="882" cy="432" rx="142" ry="104" fill="#6EA95F"/>
+  <ellipse cx="1028" cy="530" rx="126" ry="88" fill="#4B8448"/>
+  <ellipse cx="900" cy="604" rx="138" ry="92" fill="#5A944F"/>
+  <text x="144" y="190" fill="#F7F5EF" font-family="Georgia, serif" font-size="56">Planty Bonsai Studio</text>
+  <text x="144" y="258" fill="#C8D5C2" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">CALM DISPLAY LIGHTING</text>
+  <defs>
+    <linearGradient id="bg" x1="150" y1="124" x2="1412" y2="1048" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#213227"/>
+      <stop offset="1" stop-color="#15221B"/>
+    </linearGradient>
+  </defs>
+</svg>

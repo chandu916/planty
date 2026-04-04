@@ -1,0 +1,12 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#0E1715"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#E7E1D7"/>
+  <rect x="1042" y="178" width="252" height="728" rx="34" fill="#D9D1C3"/>
+  <rect x="560" y="790" width="406" height="126" rx="28" fill="#7E624A"/>
+  <path d="M758 434C730 530 716 644 716 792" stroke="#5F8E5A" stroke-width="16" stroke-linecap="round"/>
+  <path d="M772 436C824 532 858 646 880 792" stroke="#5F8E5A" stroke-width="16" stroke-linecap="round"/>
+  <path d="M762 486C666 426 592 372 554 302" stroke="#80B679" stroke-width="34" stroke-linecap="round"/>
+  <path d="M776 486C874 426 948 372 986 302" stroke="#80B679" stroke-width="34" stroke-linecap="round"/>
+  <text x="150" y="176" fill="#332F2A" font-family="Georgia, serif" font-size="54">Corner Styling</text>
+  <text x="150" y="240" fill="#6E655B" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">CALM LIVING ROOM WITH SOFT SHADOW PLAY</text>
+</svg>

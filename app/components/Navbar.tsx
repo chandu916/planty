@@ -1,19 +1,42 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, ShoppingCart, UserCircle2, LogIn, LogOut, LayoutDashboard } from "lucide-react";
+import { ChevronDown, Heart, LayoutDashboard, Leaf, LogIn, LogOut, Package, Search, ShoppingCart, TicketPercent, UserCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useSyncExternalStore } from "react";
+import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useCartStore } from "@/lib/cartStore";
 import { useUserStore } from "@/lib/userStore";
-import { useRouter } from "next/navigation";
+import { plantCategories, searchPlantCatalog } from "@/lib/plants";
+import { usePathname, useRouter } from "next/navigation";
 
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 const emptySubscribe = () => () => {};
 
+const NAV_LINKS = [
+  { label: "Plants", href: "/#plants" },
+  { label: "Categories", href: "/#plants" },
+  { label: "About", href: "/#about" },
+];
+
+const PROFILE_OPTIONS = [
+  { label: "My Profile", href: "/profile", icon: UserCircle2, accent: "text-green-200" },
+  { label: "Orders", href: "/profile/orders", icon: Package, accent: "text-sky-200" },
+  { label: "Coupons", href: "/profile/coupons", icon: TicketPercent, accent: "text-amber-200" },
+  { label: "Wishlist", href: "/profile/wishlist", icon: Heart, accent: "text-rose-200" },
+];
+
+const SEARCH_TABS = [
+  { id: "all", label: "All" },
+  ...plantCategories.slice(0, 5).map((category) => ({
+    id: category.id,
+    label: `${category.emoji} ${category.name}`,
+  })),
+] as const;
+
 export default function Navbar() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Only read Zustand stores after hydration to avoid SSR mismatch
   const totalQty = useCartStore((s) =>
@@ -22,6 +45,43 @@ export default function Navbar() {
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const user = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [searchTab, setSearchTab] = useState<(typeof SEARCH_TABS)[number]["id"]>("all");
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  const searchMatches = useMemo(() => {
+    const base = deferredSearchQuery.trim()
+      ? searchPlantCatalog(deferredSearchQuery)
+      : plantCategories.flatMap((category) =>
+          category.plants.slice(0, 2).map((plant) => ({
+            ...plant,
+            categoryId: category.id,
+            categoryName: category.name,
+            categoryEmoji: category.emoji,
+            categoryDescription: category.description,
+            gradient: category.gradient,
+          })),
+        );
+
+    const filtered = searchTab === "all"
+      ? base
+      : base.filter((plant) => plant.categoryId === searchTab);
+
+    return filtered.slice(0, 6);
+  }, [deferredSearchQuery, searchTab]);
+
+  const highlightedSuggestionIndex =
+    activeSuggestionIndex >= 0 && activeSuggestionIndex < searchMatches.length
+      ? activeSuggestionIndex
+      : -1;
+
+  const resolvedNavLinks = useMemo(() => {
+    if (pathname === "/") return NAV_LINKS.map((link) => ({ ...link, href: link.href.replace(/^\//, "") }));
+    return NAV_LINKS;
+  }, [pathname]);
 
   const clearServerSession = () => {
     void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
@@ -59,9 +119,59 @@ export default function Navbar() {
   }, [mounted, isLoggedIn, logout, router]);
 
   const handleLogout = () => {
+    setProfileMenuOpen(false);
     clearServerSession();
     logout();
     router.push("/");
+  };
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
+    setSearchOpen(false);
+    setActiveSuggestionIndex(-1);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleSuggestedSearch = (value: string, tabId?: (typeof SEARCH_TABS)[number]["id"]) => {
+    setSearchQuery(value);
+    setSearchOpen(false);
+    setActiveSuggestionIndex(-1);
+    if (tabId) {
+      setSearchTab(tabId);
+    }
+    router.push(`/search?q=${encodeURIComponent(value)}`);
+  };
+
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchOpen || searchMatches.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((current) => (current + 1) % searchMatches.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((current) => (current <= 0 ? searchMatches.length - 1 : current - 1));
+      return;
+    }
+
+    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      const selectedPlant = searchMatches[highlightedSuggestionIndex];
+      handleSuggestedSearch(selectedPlant.name, selectedPlant.categoryId);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      setSearchOpen(false);
+      setActiveSuggestionIndex(-1);
+    }
   };
 
   return (
@@ -69,108 +179,235 @@ export default function Navbar() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-sm bg-transparent"
+      className="fixed left-0 right-0 top-0 z-50 bg-transparent px-4 py-4 sm:px-6"
     >
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 group">
-        <motion.div
-          whileHover={{ rotate: 20, scale: 1.2 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          className="text-green-400"
-        >
-          <Leaf size={28} />
-        </motion.div>
-        <span className="text-2xl font-bold tracking-tight text-white">
-          Plan<span className="text-green-400">ty</span>
-        </span>
-      </Link>
-
-      {/* Nav Links */}
-      <div className="hidden md:flex items-center gap-8">
-        {["Plants", "Categories", "About"].map((item) => (
-          <motion.a
-            key={item}
-            href={`#${item.toLowerCase()}`}
-            whileHover={{ color: "#4ade80", y: -2 }}
-            className="text-green-100/80 hover:text-green-400 transition-colors text-sm font-medium"
-          >
-            {item}
-          </motion.a>
-        ))}
-      </div>
-
-      {/* Right actions */}
-      <div className="flex items-center gap-3">
-        {/* Admin link */}
-        <Link href="/admin">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 rounded-[28px] border border-white/10 bg-black/30 px-3 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:px-4">
+        <Link href="/" className="group flex shrink-0 items-center gap-2">
           <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="Admin Dashboard"
-            className="w-9 h-9 rounded-full border border-green-500/30 hover:border-green-400 flex items-center justify-center text-green-400 hover:text-green-300 transition-all"
+            whileHover={{ rotate: 20, scale: 1.2 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="text-green-400"
           >
-            <LayoutDashboard size={18} />
+            <Leaf size={26} />
           </motion.div>
+          <span className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+            Plan<span className="text-green-400">ty</span>
+          </span>
         </Link>
 
-        {/* Profile */}
-        {mounted && isLoggedIn ? (
-          <Link href="/profile">
+        <div className="ml-2 hidden shrink-0 items-center gap-5 xl:flex">
+          {resolvedNavLinks.map((item) => (
+            <motion.a
+              key={item.label}
+              href={item.href}
+              whileHover={{ color: "#86efac", y: -2 }}
+              className="text-sm font-medium text-green-100/75 transition-colors hover:text-green-300"
+            >
+              {item.label}
+            </motion.a>
+          ))}
+        </div>
+
+        <div className="hidden min-w-0 flex-1 md:block xl:mx-3">
+          <div className="relative mx-auto max-w-2xl">
+            <form onSubmit={handleSearchSubmit} className="flex items-stretch" onFocus={() => setSearchOpen(true)}>
+              <div className="relative min-w-0 flex-1">
+                <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-green-200/45" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setActiveSuggestionIndex(-1);
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  onBlur={() => window.setTimeout(() => {
+                    setSearchOpen(false);
+                    setActiveSuggestionIndex(-1);
+                  }, 140)}
+                  placeholder="Search rare bonsai, indoor greens, herbs..."
+                  className="w-full rounded-l-full rounded-r-none border border-r-0 border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-white placeholder:text-green-100/30 focus:border-green-400/35 focus:outline-none focus:ring-2 focus:ring-green-400/20"
+                />
+              </div>
+              <button
+                type="submit"
+                aria-label="Search plants"
+                className="unstyled-action flex h-auto shrink-0 items-center justify-center rounded-l-none rounded-r-full border border-white/10 bg-green-400 px-4 text-black transition hover:bg-green-300"
+              >
+                <Search size={15} />
+              </button>
+            </form>
+
+            <AnimatePresence>
+              {searchOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute left-0 right-0 top-[calc(100%+12px)] overflow-hidden rounded-[24px] border border-white/10 bg-[#07120d]/95 p-2 shadow-[0_24px_90px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+                >
+                  <div className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-green-200/35">Suggested</div>
+                  <div className="scrollbar-none flex gap-2 overflow-x-auto px-2 pb-3">
+                    {SEARCH_TABS.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          setSearchTab(tab.id);
+                          setActiveSuggestionIndex(-1);
+                        }}
+                        className={`unstyled-action shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                          searchTab === tab.id
+                            ? "border-green-400/35 bg-green-500/18 text-white"
+                            : "border-white/10 bg-white/[0.04] text-green-100/55 hover:border-green-400/20 hover:text-white"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {searchMatches.length === 0 ? (
+                    <div className="rounded-2xl px-4 py-5 text-sm text-green-100/45">
+                      No suggestions in this tab yet. Try another plant name or category.
+                    </div>
+                  ) : (
+                    searchMatches.map((plant) => (
+                      <button
+                        key={`${plant.categoryId}-${plant.id}`}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSuggestedSearch(plant.name, plant.categoryId)}
+                        className={`unstyled-action flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left transition hover:bg-white/5 ${
+                          searchMatches[highlightedSuggestionIndex]?.id === plant.id ? "bg-white/8" : ""
+                        }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-white">{plant.categoryEmoji} {plant.name}</span>
+                          <span className="block truncate text-xs text-green-100/45">{plant.categoryName} · {plant.care}</span>
+                        </span>
+                        <span className="ml-4 text-sm font-semibold text-green-300">₹{plant.price}</span>
+                      </button>
+                    ))
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          <Link href="/search">
+            <motion.div
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              title="Search Plants"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-green-300/80 transition hover:border-green-400/35 hover:text-white md:hidden"
+            >
+              <Search size={17} />
+            </motion.div>
+          </Link>
+
+          <Link href="/admin">
             <motion.div
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              title="My Profile"
-              className="w-9 h-9 rounded-full border border-green-500/30 hover:border-green-400 flex items-center justify-center text-green-400 hover:text-green-300 transition-all"
+              title="Admin Dashboard"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-green-500/25 text-green-400 transition-all hover:border-green-400 hover:text-green-300"
             >
-              <UserCircle2 size={20} />
+              <LayoutDashboard size={18} />
             </motion.div>
           </Link>
-        ) : null}
 
-        {/* Cart */}
-        <Link href="/cart">
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="Cart"
-            className="relative w-9 h-9 rounded-full border border-green-500/30 hover:border-green-400 flex items-center justify-center text-green-400 hover:text-green-300 transition-all"
-          >
-            <ShoppingCart size={18} />
-            {mounted && totalQty > 0 && (
-              <AnimatePresence>
-                <motion.span
-                  key="badge"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 text-black text-[10px] font-bold flex items-center justify-center"
-                >
-                  {totalQty > 9 ? "9+" : totalQty}
-                </motion.span>
-              </AnimatePresence>
-            )}
-          </motion.div>
-        </Link>
+          <Link href="/cart">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="Cart"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-green-500/25 text-green-400 transition-all hover:border-green-400 hover:text-green-300"
+            >
+              <ShoppingCart size={18} />
+              {mounted && totalQty > 0 && (
+                <AnimatePresence>
+                  <motion.span
+                    key="badge"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-black"
+                  >
+                    {totalQty > 9 ? "9+" : totalQty}
+                  </motion.span>
+                </AnimatePresence>
+              )}
+            </motion.div>
+          </Link>
 
-        {/* Login / User greeting / Logout */}
         {mounted ? (
           isLoggedIn ? (
-            <div className="flex items-center gap-2">
-              {user ? (
-                <span className="hidden sm:block text-green-300 text-sm font-medium">
-                  Hi, {user.fullName.split(" ")[0]}
-                </span>
-              ) : null}
+            <div
+              className="relative"
+              onMouseEnter={() => setProfileMenuOpen(true)}
+              onMouseLeave={() => setProfileMenuOpen(false)}
+            >
               <motion.button
-                onClick={handleLogout}
-                whileHover={{ scale: 1.05 }}
+                type="button"
+                onClick={() => setProfileMenuOpen((open) => !open)}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                title="Logout"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-green-500/40 hover:border-red-400 text-green-400 hover:text-red-400 transition-all text-sm font-medium"
+                className="flex items-center gap-2 rounded-full border border-green-500/25 bg-white/[0.04] px-3 py-2 text-sm text-green-100 transition hover:border-green-400/35 hover:text-white"
               >
-                <LogOut size={15} />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-sm font-bold text-black">
+                  {user?.fullName?.[0]?.toUpperCase() ?? "P"}
+                </span>
+                <span className="hidden text-left sm:block">
+                  <span className="block text-[11px] uppercase tracking-[0.22em] text-green-100/40">Account</span>
+                  <span className="block max-w-28 truncate font-medium">{user?.fullName ?? "My Profile"}</span>
+                </span>
+                <ChevronDown size={15} className={`transition ${profileMenuOpen ? "rotate-180" : ""}`} />
               </motion.button>
+
+              <AnimatePresence>
+                {profileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 top-[calc(100%+12px)] z-50 w-72 overflow-hidden rounded-[26px] border border-white/10 bg-[#07110d]/95 p-2 shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+                  >
+                    <div className="rounded-[20px] border border-white/8 bg-white/[0.035] px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.24em] text-green-100/35">Signed In</p>
+                      <p className="mt-1 truncate text-sm font-semibold text-white">{user?.fullName}</p>
+                      <p className="truncate text-xs text-green-100/45">{user?.email}</p>
+                    </div>
+
+                    <div className="mt-2 space-y-1">
+                      {PROFILE_OPTIONS.map(({ label, href, icon: Icon, accent }) => (
+                        <Link key={href} href={href}>
+                          <span className="flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-white/5">
+                            <span className={accent}>
+                              <Icon size={16} />
+                            </span>
+                            <span className="text-sm font-medium text-white">{label}</span>
+                          </span>
+                        </Link>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:bg-red-500/10"
+                      >
+                        <span className="text-red-300">
+                          <LogOut size={16} />
+                        </span>
+                        <span className="text-sm font-medium text-red-200">Logout</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <Link href="/login">
@@ -187,9 +424,9 @@ export default function Navbar() {
             </Link>
           )
         ) : (
-          /* Placeholder while hydrating — prevents layout shift */
           <div className="w-20 h-9" />
         )}
+        </div>
       </div>
     </motion.nav>
   );

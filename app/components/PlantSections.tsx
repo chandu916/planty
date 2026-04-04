@@ -68,6 +68,7 @@ function CategorySection({ category }: { category: PlantCategory }) {
             <PlantCard
               key={plant.id}
               plant={plant}
+              categoryId={category.id}
               categoryName={category.name}
               categoryEmoji={category.emoji}
               delay={i * 0.1}

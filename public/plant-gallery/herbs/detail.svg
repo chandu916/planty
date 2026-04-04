@@ -1,0 +1,13 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#16170F"/>
+  <rect x="72" y="72" width="1456" height="1056" rx="56" fill="#232317"/>
+  <path d="M812 964C818 844 830 678 850 446" stroke="#638E55" stroke-width="18" stroke-linecap="round"/>
+  <ellipse cx="748" cy="428" rx="96" ry="56" fill="#8DC472"/>
+  <ellipse cx="892" cy="374" rx="96" ry="56" fill="#79AF63"/>
+  <ellipse cx="972" cy="508" rx="96" ry="56" fill="#95CC79"/>
+  <ellipse cx="686" cy="566" rx="96" ry="56" fill="#7FB566"/>
+  <ellipse cx="850" cy="632" rx="96" ry="56" fill="#88BC6C"/>
+  <circle cx="1218" cy="266" r="136" fill="#FFF0C0" fill-opacity="0.14"/>
+  <text x="144" y="188" fill="#FBF9F0" font-family="Georgia, serif" font-size="56">Fresh Leaf Detail</text>
+  <text x="144" y="254" fill="#D8D3C2" font-family="Arial, sans-serif" font-size="24" letter-spacing="5">SOFT HERB CLUSTERS READY FOR HARVEST</text>
+</svg>
