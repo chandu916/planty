@@ -11,7 +11,6 @@ if (!uri) {
 
 // In development, reuse the client across hot reloads (avoids connection pool exhaustion)
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 

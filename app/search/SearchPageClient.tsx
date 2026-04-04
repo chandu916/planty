@@ -54,7 +54,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
           <motion.section
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.045] px-6 py-7 shadow-[0_24px_100px_rgba(0,0,0,0.28)]"
+            className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.045] px-5 py-6 shadow-[0_24px_100px_rgba(0,0,0,0.28)] sm:px-6 sm:py-7"
           >
             <div className="pointer-events-none absolute inset-0" />
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-300/60">Plant Search</p>
@@ -63,7 +63,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
               Search across indoor greens, bonsai, flowering plants, succulents, herbs, and more.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 flex items-stretch">
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-0">
               <div className="relative min-w-0 flex-1">
                 <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-green-200/40" />
                 <input
@@ -71,13 +71,13 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search Monstera, bonsai, aloe, tulsi..."
-                  className="w-full rounded-l-full rounded-r-none border border-r-0 border-white/10 bg-black/20 py-3 pl-12 pr-4 text-sm text-white placeholder:text-green-100/30 focus:border-green-400/30 focus:outline-none focus:ring-2 focus:ring-green-400/20"
+                  className="w-full rounded-full border border-white/10 bg-black/20 py-3 pl-12 pr-4 text-sm text-white placeholder:text-green-100/30 focus:border-green-400/30 focus:outline-none focus:ring-2 focus:ring-green-400/20 sm:rounded-l-full sm:rounded-r-none sm:border-r-0"
                 />
               </div>
               <button
                 type="submit"
                 aria-label="Search plants"
-                className="unstyled-action flex shrink-0 items-center justify-center rounded-l-none rounded-r-full border border-white/10 bg-green-400 px-5 text-black transition hover:bg-green-300"
+                className="unstyled-action flex h-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-green-400 px-5 text-black transition hover:bg-green-300 sm:h-auto sm:rounded-l-none sm:rounded-r-full"
               >
                 <Search size={15} />
               </button>
@@ -110,7 +110,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
             </div>
           </motion.section>
 
-          <div className="mt-8 flex items-center justify-between gap-4">
+          <div className="mt-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-100/35">Results</p>
               <h2 className="mt-2 text-2xl font-semibold text-white">

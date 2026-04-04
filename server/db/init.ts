@@ -154,7 +154,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "users", validator: usersValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: users (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection users exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -173,7 +173,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "admins", validator: adminsValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: admins (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection admins exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -191,7 +191,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "orders", validator: ordersValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: orders (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection orders exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -239,7 +239,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "carts", validator: cartsValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: carts (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection carts exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -256,7 +256,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "auth_sessions", validator: authSessionsValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: auth_sessions (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection auth_sessions exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -274,7 +274,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "password_reset_tokens", validator: passwordResetValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: password_reset_tokens (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection password_reset_tokens exists (validator update skipped — insufficient permissions)");
     }
   }
@@ -293,7 +293,7 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
     try {
       await db.command({ collMod: "plant_reviews", validator: plantReviewsValidator, validationLevel: "moderate" });
       log.push("✓ Verified collection: plant_reviews (validator updated)");
-    } catch (e) {
+    } catch {
       log.push("⚠ Collection plant_reviews exists (validator update skipped — insufficient permissions)");
     }
   }

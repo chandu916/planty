@@ -23,7 +23,7 @@ import {
   TicketPercent,
 } from "lucide-react";
 import { useUserStore } from "@/lib/userStore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -123,7 +123,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
     formState: { errors },
   } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     setLoading(true);
     setFetchError("");
     try {
@@ -147,7 +147,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
     } finally {
       setLoading(false);
     }
-  };
+  }, [reset]);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,7 +204,7 @@ export default function ProfilePageClient({ initialUser }: { initialUser: Profil
     }
 
     void fetchUser();
-  }, [hasActiveSession, initialUser.email, loggedInUser?.email]);
+  }, [fetchUser, hasActiveSession, initialUser.email, loggedInUser?.email]);
 
   const onSave = async (data: EditForm) => {
     if (!user) return;

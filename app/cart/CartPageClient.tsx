@@ -365,7 +365,10 @@ export default function CartPageClient() {
               {/* LEFT — Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 <AnimatePresence>
-                  {items.map((item) => (
+                  {items.map((item) => {
+                    const detailHref = `/plants/item/${item.id}`;
+
+                    return (
                     <motion.div
                       key={item.id}
                       layout
@@ -373,66 +376,70 @@ export default function CartPageClient() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -30, height: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="group relative flex items-center gap-4 bg-white/5 border border-white/10 hover:border-green-400/30 rounded-2xl p-4 sm:p-5 transition-colors"
+                      className="group relative flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-green-400/30 sm:flex-row sm:items-center sm:p-5"
                     >
-                      {/* Emoji thumbnail */}
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-green-900/50 to-emerald-800/30 flex items-center justify-center text-3xl">
-                        {item.emoji}
-                      </div>
+                      <Link
+                        href={detailHref}
+                        className="flex min-w-0 flex-1 items-center gap-4 rounded-xl outline-none transition-colors hover:text-green-300 focus-visible:ring-2 focus-visible:ring-green-400/60"
+                      >
+                        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-900/50 to-emerald-800/30 text-3xl sm:h-20 sm:w-20">
+                          {item.emoji}
+                        </div>
 
-                      {/* Details */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-green-400/60 mb-0.5">{item.categoryName}</p>
-                        <h3 className="text-white font-semibold text-sm sm:text-base truncate">
-                          {item.name}
-                        </h3>
-                        <p className="text-green-300 font-bold mt-1">₹{item.price}</p>
-                      </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="mb-0.5 text-xs text-green-400/60">{item.categoryName}</p>
+                          <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-green-200 sm:text-base">
+                            {item.name}
+                          </h3>
+                          <p className="mt-1 font-bold text-green-300">₹{item.price}</p>
+                        </div>
+                      </Link>
 
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center justify-between gap-4 sm:w-auto sm:flex-nowrap sm:justify-start">
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            data-sound="count-down"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-7 h-7 rounded-full border border-green-500/30 flex items-center justify-center text-green-400 hover:bg-green-500 hover:text-black hover:border-green-500 transition-all"
+                          >
+                            <Minus size={12} />
+                          </motion.button>
+                          <span className="text-white font-medium w-6 text-center text-sm">
+                            {item.quantity}
+                          </span>
+                          <motion.button
+                            data-sound="count-up"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-7 h-7 rounded-full border border-green-500/30 flex items-center justify-center text-green-400 hover:bg-green-500 hover:text-black hover:border-green-500 transition-all"
+                          >
+                            <Plus size={12} />
+                          </motion.button>
+                        </div>
+
+                        <div className="min-w-0 text-left sm:min-w-[70px] sm:text-right">
+                          <p className="font-bold text-green-300">
+                            ₹{item.price * item.quantity}
+                          </p>
+                        </div>
+
                         <motion.button
-                          data-sound="count-down"
+                          data-sound="delete"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-7 h-7 rounded-full border border-green-500/30 flex items-center justify-center text-green-400 hover:bg-green-500 hover:text-black hover:border-green-500 transition-all"
+                          onClick={() => removeItem(item.id)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
                         >
-                          <Minus size={12} />
-                        </motion.button>
-                        <span className="text-white font-medium w-6 text-center text-sm">
-                          {item.quantity}
-                        </span>
-                        <motion.button
-                          data-sound="count-up"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-7 h-7 rounded-full border border-green-500/30 flex items-center justify-center text-green-400 hover:bg-green-500 hover:text-black hover:border-green-500 transition-all"
-                        >
-                          <Plus size={12} />
+                          <Trash2 size={14} />
                         </motion.button>
                       </div>
-
-                      {/* Line Total */}
-                      <div className="text-right min-w-[70px]">
-                        <p className="text-green-300 font-bold">
-                          ₹{item.price * item.quantity}
-                        </p>
-                      </div>
-
-                      {/* Remove */}
-                      <motion.button
-                        data-sound="delete"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => removeItem(item.id)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </motion.button>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </AnimatePresence>
               </div>
 
@@ -455,10 +462,13 @@ export default function CartPageClient() {
                         key={item.id}
                         className="flex items-center justify-between text-sm"
                       >
-                        <span className="text-green-200/60 truncate flex-1 mr-2">
+                        <Link
+                          href={`/plants/item/${item.id}`}
+                          className="mr-2 flex-1 truncate text-green-200/60 transition-colors hover:text-green-300"
+                        >
                           {item.emoji} {item.name}{" "}
                           <span className="text-green-400/50">×{item.quantity}</span>
-                        </span>
+                        </Link>
                         <span className="text-white font-medium flex-shrink-0">
                           ₹{item.price * item.quantity}
                         </span>

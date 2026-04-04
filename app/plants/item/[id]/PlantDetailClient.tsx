@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { BadgePercent, CreditCard, Heart, IndianRupee, Loader2, RotateCcw, ShieldCheck, Star, Truck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { BadgePercent, CreditCard, IndianRupee, Loader2, RotateCcw, ShieldCheck, Star, Truck } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import BackButton from "@/app/components/BackButton";
@@ -79,6 +79,7 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
 
   const isWishlisted = useMemo(
     () => wishlistItems.some((item) => item.id === plant.id),
@@ -94,7 +95,7 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
     setSelectedImageIndex(0);
   }, [plant.id]);
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/plants/${plant.id}/reviews`, { cache: "no-store" });
@@ -112,13 +113,48 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
     } finally {
       setLoading(false);
     }
-  };
+  }, [plant.id]);
 
   useEffect(() => {
     void loadReviews();
-  }, [plant.id]);
+  }, [loadReviews]);
 
   const selectedImage = galleryImages[selectedImageIndex] ?? galleryImages[0];
+  const featureCards = [
+    { icon: BadgePercent, title: "Offers", detail: OFFER_LINES[0] },
+    { icon: Truck, title: "Delivery", detail: "Fast home delivery across eligible pincodes." },
+    { icon: CreditCard, title: "COD", detail: "Cash on delivery available for selected local deliveries." },
+    { icon: RotateCcw, title: "Returns", detail: "Easy return and replacement support for damaged deliveries." },
+    { icon: ShieldCheck, title: "Protection", detail: "Healthy plant assurance and support guidance after purchase." },
+    { icon: BadgePercent, title: "Perks", detail: OFFER_LINES[2] },
+  ];
+
+  const scrollToImage = useCallback((index: number) => {
+    setSelectedImageIndex(index);
+    const container = mobileCarouselRef.current;
+    if (!container) {
+      return;
+    }
+
+    const slide = container.children[index] as HTMLElement | undefined;
+    if (!slide) {
+      return;
+    }
+
+    container.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
+  }, []);
+
+  const handleMobileCarouselScroll = useCallback(() => {
+    const container = mobileCarouselRef.current;
+    if (!container) {
+      return;
+    }
+
+    const nextIndex = Math.round(container.scrollLeft / Math.max(container.clientWidth, 1));
+    if (nextIndex !== selectedImageIndex && nextIndex >= 0 && nextIndex < galleryImages.length) {
+      setSelectedImageIndex(nextIndex);
+    }
+  }, [galleryImages.length, selectedImageIndex]);
 
   const handleReviewSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -143,34 +179,92 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-transparent">
+    <main className="flex min-h-screen flex-col overflow-x-hidden bg-transparent">
       <Navbar />
 
-      <div className="flex-1 px-4 pb-16 pt-28 sm:px-6">
-        <div className="mx-auto max-w-7xl">
+      <div className="flex-1 overflow-x-hidden px-4 pb-16 pt-28 sm:px-6">
+        <div className="mx-auto max-w-6xl">
           <BackButton fallbackHref="/" label="Back" className="mb-5" />
 
-          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <section className="space-y-4">
+          <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <section className="min-w-0 space-y-4">
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="overflow-hidden rounded-[34px] border border-white/10 bg-[#101913] shadow-[0_26px_90px_rgba(0,0,0,0.24)]"
+                className="mx-auto w-full max-w-[calc(100vw-2rem)] min-w-0 overflow-hidden rounded-[30px] border border-white/10 bg-[#101913] shadow-[0_26px_90px_rgba(0,0,0,0.24)] md:hidden"
               >
-                <div className="relative aspect-[4/3] min-h-[420px] w-full">
+                <div
+                  ref={mobileCarouselRef}
+                  onScroll={handleMobileCarouselScroll}
+                  className="scrollbar-none flex w-full max-w-full snap-x snap-mandatory touch-pan-x overflow-x-auto overscroll-x-contain"
+                >
+                  {galleryImages.map((image, index) => (
+                    <div key={image.src} className="relative h-full w-full min-w-full max-w-full shrink-0 basis-full snap-center overflow-hidden">
+                      <div className="relative h-[220px] w-full max-w-full bg-[#0c1711] xs:h-[240px] sm:h-[280px]">
+                        <Image
+                          src={image.src}
+                          alt={`${plant.name} ${image.label.toLowerCase()}`}
+                          fill
+                          fetchPriority={index === 0 ? "high" : undefined}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1023px) calc(100vw - 3rem), 100vw"
+                          className="object-contain p-3"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent p-3.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">Planty Select</p>
+                              <p className="mt-2 text-lg font-semibold text-white">{plant.name}</p>
+                              <p className="mt-1 text-xs text-white/70">{image.label}</p>
+                            </div>
+                            <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/70">
+                              {index + 1}/{galleryImages.length}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+                  <span className="text-xs uppercase tracking-[0.22em] text-white/45">Swipe gallery</span>
+                  <div className="flex items-center gap-2">
+                    {galleryImages.map((image, index) => (
+                      <button
+                        key={image.src}
+                        type="button"
+                        onClick={() => scrollToImage(index)}
+                        className={`unstyled-action h-2.5 rounded-full transition-all ${
+                          index === selectedImageIndex ? "w-7 bg-green-300" : "w-2.5 bg-white/30"
+                        }`}
+                        aria-label={`View ${image.label}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="hidden w-full min-w-0 overflow-hidden rounded-[34px] border border-white/10 bg-[#101913] shadow-[0_26px_90px_rgba(0,0,0,0.24)] md:block"
+              >
+                <div className="relative aspect-[4/3] min-h-[260px] w-full md:min-h-[320px] lg:min-h-[380px] xl:min-h-[420px]">
                   <Image
                     src={selectedImage.src}
                     alt={`${plant.name} ${selectedImage.label.toLowerCase()}`}
                     fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 52vw"
-                    className="object-cover"
+                    fetchPriority="high"
+                    loading="eager"
+                    sizes="(max-width: 1024px) calc(100vw - 3rem), 52vw"
+                    className="object-contain p-4 lg:object-cover lg:p-0"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent p-6">
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent p-4 sm:p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">Planty Select</p>
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                       <div>
-                        <p className="text-2xl font-semibold text-white">{plant.name}</p>
+                        <p className="text-xl font-semibold text-white sm:text-2xl">{plant.name}</p>
                         <p className="mt-1 text-sm text-white/70">{selectedImage.label}</p>
                       </div>
                       <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/70">
@@ -181,13 +275,13 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
                 </div>
               </motion.div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="hidden min-w-0 gap-3 sm:grid-cols-3 md:grid">
                 {galleryImages.map((image, index) => (
                   <button
                     key={image.src}
                     type="button"
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`unstyled-action overflow-hidden rounded-[24px] border text-left shadow-[0_14px_48px_rgba(0,0,0,0.18)] transition ${
+                    className={`unstyled-action overflow-hidden rounded-[22px] border text-left shadow-[0_14px_48px_rgba(0,0,0,0.18)] transition ${
                       index === selectedImageIndex
                         ? "border-green-300/45 bg-white/10"
                         : "border-white/10 bg-white/[0.04] hover:border-white/20"
@@ -202,7 +296,7 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
                         className="object-cover"
                       />
                     </div>
-                    <div className="px-4 py-3">
+                    <div className="px-3 py-2.5">
                       <p className="text-xs uppercase tracking-[0.22em] text-white/45">{image.label}</p>
                     </div>
                   </button>
@@ -210,11 +304,11 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
               </div>
             </section>
 
-            <section className="space-y-5">
+            <section className="min-w-0 space-y-5">
               <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-[34px] border border-white/10 bg-white/[0.045] p-7 shadow-[0_26px_90px_rgba(0,0,0,0.24)]"
+                className="w-full min-w-0 rounded-[34px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_26px_90px_rgba(0,0,0,0.24)] sm:p-7"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-green-300/55">{plant.categoryName}</p>
                 <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">{plant.name}</h1>
@@ -234,7 +328,7 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
                   ) : null}
                 </div>
 
-                <div className="mt-6 flex items-end gap-3">
+                <div className="mt-6 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:gap-3">
                   <div className="flex items-center text-4xl font-bold text-white">
                     <IndianRupee size={28} className="mt-1" />
                     {plant.price}
@@ -275,31 +369,45 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
                 </div>
               </motion.div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  { icon: BadgePercent, title: "Coupons & offers", detail: OFFER_LINES[0] },
-                  { icon: Truck, title: "Delivery", detail: "Fast home delivery across eligible pincodes." },
-                  { icon: CreditCard, title: "COD availability", detail: "Cash on delivery available for selected local deliveries." },
-                  { icon: RotateCcw, title: "Returns", detail: "Easy return and replacement support for damaged deliveries." },
-                  { icon: ShieldCheck, title: "Plant protection", detail: "Healthy plant assurance and support guidance after purchase." },
-                  { icon: BadgePercent, title: "Bonus perks", detail: OFFER_LINES[2] },
-                ].map(({ icon: Icon, title, detail }) => (
-                  <div key={title} className="rounded-[26px] border border-white/10 bg-white/[0.045] p-5">
-                    <div className="inline-flex rounded-full border border-white/10 bg-black/20 p-2 text-green-300">
-                      <Icon size={16} />
+              <div className="min-w-0 md:hidden">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100/35">Delivery & support</p>
+                  <p className="text-xs text-green-100/40">Swipe for more</p>
+                </div>
+                <div className="scrollbar-none flex w-full max-w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+                  {featureCards.map(({ icon: Icon, title, detail }) => (
+                    <div
+                      key={title}
+                      className="flex aspect-square min-w-[96px] max-w-[96px] snap-start flex-col rounded-[22px] border border-white/10 bg-white/[0.045] p-2.5"
+                    >
+                      <div className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-green-300">
+                        <Icon size={15} />
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-white">{title}</p>
+                      <p className="mt-1 line-clamp-3 text-[11px] leading-4 text-green-100/45">{detail}</p>
                     </div>
-                    <p className="mt-4 text-sm font-semibold text-white">{title}</p>
-                    <p className="mt-2 text-sm leading-6 text-green-100/45">{detail}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hidden min-w-0 gap-3 md:grid md:grid-cols-2 xl:grid-cols-3">
+                {featureCards.map(({ icon: Icon, title, detail }) => (
+                  <div key={title} className="rounded-[22px] border border-white/10 bg-white/[0.045] p-4">
+                    <div className="inline-flex rounded-xl border border-white/10 bg-black/20 p-2 text-green-300">
+                      <Icon size={15} />
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-white">{title}</p>
+                    <p className="mt-1.5 text-xs leading-5 text-green-100/45">{detail}</p>
                   </div>
                 ))}
               </div>
             </section>
           </div>
 
-          <section className="mt-10 grid gap-8 xl:grid-cols-[0.8fr_1.2fr]">
-            <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6">
+          <section className="mt-10 grid min-w-0 gap-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <div className="min-w-0 rounded-[30px] border border-white/10 bg-white/[0.045] p-6">
               <h2 className="text-2xl font-semibold text-white">Customer reviews</h2>
-              <div className="mt-4 flex items-end gap-3">
+              <div className="mt-4 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:gap-3">
                 <span className="text-5xl font-bold text-white">{summary.averageRating || "0.0"}</span>
                 <div className="pb-2">
                   <Stars value={Math.round(summary.averageRating || 0)} />
@@ -369,7 +477,7 @@ export default function PlantDetailClient({ plant }: { plant: PlantCatalogItem }
               </div>
             </div>
 
-            <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6">
+            <div className="min-w-0 rounded-[30px] border border-white/10 bg-white/[0.045] p-6">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-2xl font-semibold text-white">What buyers said</h2>
                 {loading ? (

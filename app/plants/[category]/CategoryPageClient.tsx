@@ -88,7 +88,7 @@ export default function CategoryPageClient({
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="pt-32 pb-16 px-6">
+      <section className="px-4 pb-16 pt-30 sm:px-6 sm:pt-32">
         <div className="relative max-w-6xl mx-auto">
           <div className="pointer-events-none absolute inset-x-[-8%] inset-y-[-14%] rounded-[56px] blur-3xl opacity-100" style={{ backgroundImage: theme.heroMist }} />
 
@@ -114,16 +114,16 @@ export default function CategoryPageClient({
             </motion.span>
           ))}
 
-          <div className={`relative z-10 rounded-[32px] border px-6 py-7 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.18)] ${theme.heroPanel}`}>
+          <div className={`relative z-10 rounded-[32px] border px-5 py-6 backdrop-blur-sm shadow-[0_20px_60px_rgba(0,0,0,0.18)] sm:px-6 sm:py-7 ${theme.heroPanel}`}>
           <BackButton fallbackHref="/#plants" label="Back" className="mb-6" />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center gap-4 mb-3"
+            className="mb-3 flex flex-wrap items-center gap-4"
           >
-            <span className="text-6xl">{category.emoji}</span>
+            <span className="text-5xl sm:text-6xl">{category.emoji}</span>
             <div className={`flex items-center gap-1 rounded-full border px-3 py-1 backdrop-blur-sm ${theme.badgeTone}`}>
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -139,7 +139,7 @@ export default function CategoryPageClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className={`text-4xl sm:text-6xl font-extrabold text-white mb-4 ${theme.titleGlow}`}
+            className={`mb-4 text-4xl font-extrabold text-white sm:text-5xl lg:text-6xl ${theme.titleGlow}`}
           >
             {category.name}
           </motion.h1>
@@ -157,7 +157,7 @@ export default function CategoryPageClient({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className={`mt-4 flex items-center gap-2 text-sm ${theme.accentText}`}
+            className={`mt-4 flex flex-wrap items-center gap-2 text-sm ${theme.accentText}`}
           >
             <Leaf size={14} />
             {category.plants.length} plants available
@@ -167,10 +167,10 @@ export default function CategoryPageClient({
       </section>
 
       {/* Plants Grid */}
-      <section className="py-16 px-6 flex-1">
+      <section className="flex-1 px-4 py-16 sm:px-6">
         <div className="relative max-w-6xl mx-auto">
           <div className="pointer-events-none absolute inset-x-[-8%] top-[-10%] bottom-[8%] rounded-[64px] blur-3xl opacity-100" style={{ backgroundImage: theme.gridMist }} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
             {category.plants.map((plant, i) => (
               <PlantCard
                 key={plant.id}

@@ -37,7 +37,7 @@ export default function PlantCard({
   const detailHref = `/plants/item/${plant.id}`;
 
   const openDetails = () => {
-    window.open(detailHref, "_blank", "noopener,noreferrer");
+    router.push(detailHref);
   };
 
   const handleAdd = () => {
@@ -78,7 +78,7 @@ export default function PlantCard({
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -8, boxShadow: "0 20px 60px rgba(74,222,128,0.2)" }}
-      className="relative group bg-white/5 border border-white/10 hover:border-green-400/40 rounded-2xl p-5 cursor-pointer transition-colors overflow-hidden"
+      className="relative group flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-green-400/40 sm:p-5"
       onClick={openDetails}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -123,19 +123,19 @@ export default function PlantCard({
         </motion.span>
       </div>
 
-      <h4 className="text-white font-semibold text-base mb-1">{plant.name}</h4>
-      <p className="text-green-200/60 text-xs mb-2 leading-relaxed">{plant.description}</p>
-      <p className="text-green-400/70 text-xs mb-4">{plant.care}</p>
+      <h4 className="mb-1 text-base font-semibold text-white">{plant.name}</h4>
+      <p className="mb-2 text-xs leading-relaxed text-green-200/60">{plant.description}</p>
+      <p className="mb-4 text-xs text-green-400/70">{plant.care}</p>
 
-      <div className="flex items-center justify-between">
-        <span className="text-green-300 font-bold text-lg">₹{plant.price}</span>
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <span className="text-lg font-bold text-green-300">₹{plant.price}</span>
         <button
           data-sound="add-cart"
           onClick={(event) => {
             event.stopPropagation();
             handleAdd();
           }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 border ${
+          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
             added || inCart
               ? "bg-green-500 text-black border-green-500"
               : "bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-black border-green-500/30"
