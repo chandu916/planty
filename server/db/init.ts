@@ -88,6 +88,36 @@ const cartsValidator = {
   },
 };
 
+const authSessionsValidator = {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["sessionId", "role", "createdAt", "updatedAt", "expiresAt"],
+    additionalProperties: true,
+    properties: {
+      sessionId: { bsonType: "string" },
+      role: { bsonType: "string", enum: ["user", "admin"] },
+      createdAt: { bsonType: "string" },
+      updatedAt: { bsonType: "string" },
+      expiresAt: { bsonType: "string" },
+    },
+  },
+};
+
+const passwordResetValidator = {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["userEmail", "tokenHash", "createdAt", "expiresAt"],
+    additionalProperties: true,
+    properties: {
+      userEmail: { bsonType: "string" },
+      tokenHash: { bsonType: "string" },
+      createdAt: { bsonType: "string" },
+      expiresAt: { bsonType: "string" },
+      usedAt: { bsonType: ["string", "null"] },
+    },
+  },
+};
+
 // ─── Main init function ───────────────────────────────────────────────────────
 
 export async function setupDatabase(): Promise<{ message: string; details: string[] }> {
@@ -199,6 +229,43 @@ export async function setupDatabase(): Promise<{ message: string; details: strin
   const cartsCol = db.collection("carts");
   await cartsCol.createIndex({ userEmail: 1 }, { unique: true, name: "userEmail_unique" });
   log.push("✓ Indexes ready: carts.userEmail (unique)");
+
+  // ── auth_sessions collection ─────────────────────────────────────────────
+  if (!existingCollections.includes("auth_sessions")) {
+    await db.createCollection("auth_sessions", { validator: authSessionsValidator });
+    log.push("✓ Created collection: auth_sessions");
+  } else {
+    try {
+      await db.command({ collMod: "auth_sessions", validator: authSessionsValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: auth_sessions (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection auth_sessions exists (validator update skipped — insufficient permissions)");
+    }
+  }
+
+  const sessionsCol = db.collection("auth_sessions");
+  await sessionsCol.createIndex({ sessionId: 1 }, { unique: true, name: "sessionId_unique" });
+  await sessionsCol.createIndex({ expiresAt: 1 }, { name: "expiresAt_idx" });
+  log.push("✓ Indexes ready: auth_sessions.sessionId (unique), auth_sessions.expiresAt");
+
+  // ── password_reset_tokens collection ────────────────────────────────────
+  if (!existingCollections.includes("password_reset_tokens")) {
+    await db.createCollection("password_reset_tokens", { validator: passwordResetValidator });
+    log.push("✓ Created collection: password_reset_tokens");
+  } else {
+    try {
+      await db.command({ collMod: "password_reset_tokens", validator: passwordResetValidator, validationLevel: "moderate" });
+      log.push("✓ Verified collection: password_reset_tokens (validator updated)");
+    } catch (e) {
+      log.push("⚠ Collection password_reset_tokens exists (validator update skipped — insufficient permissions)");
+    }
+  }
+
+  const passwordResetCol = db.collection("password_reset_tokens");
+  await passwordResetCol.createIndex({ tokenHash: 1 }, { unique: true, name: "tokenHash_unique" });
+  await passwordResetCol.createIndex({ userEmail: 1 }, { name: "userEmail_idx" });
+  await passwordResetCol.createIndex({ expiresAt: 1 }, { name: "expiresAt_idx" });
+  log.push("✓ Indexes ready: password_reset_tokens.tokenHash (unique), password_reset_tokens.userEmail, password_reset_tokens.expiresAt");
 
   // ── Seed default superadmin (only if no admin exists) ─────────────────────
   const adminCount = await adminsCol.countDocuments();

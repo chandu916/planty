@@ -33,6 +33,28 @@ RAZORPAY_KEY_SECRET=your_test_secret
 
 If those keys are missing, the app automatically falls back to mock checkout and still completes the order flow safely for testing.
 
+## Password Reset Email Setup
+
+The forgot-password flow supports real SMTP email delivery.
+
+Add these environment variables to enable reset emails:
+
+```bash
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+SMTP_FROM="Planty <no-reply@yourdomain.com>"
+SESSION_SECRET=replace-with-a-long-random-secret
+```
+
+Notes:
+
+- `SMTP_SECURE=true` is typically used with port `465`.
+- In local development, if SMTP is not configured, the API still returns a direct reset link so you can test the flow.
+- In production, SMTP should be configured or password reset requests for real accounts will fail safely.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

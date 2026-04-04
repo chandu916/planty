@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import AuthSessionSync from "./components/AuthSessionSync";
 import GlobalBackground from "./components/GlobalBackground";
 import GlobalClickEffects from "./components/GlobalClickEffects";
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <GlobalBackground />
         <GlobalClickEffects />
+        <AuthSessionSync />
         <div className="relative z-10">{children}</div>
       </body>
     </html>

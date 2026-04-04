@@ -23,6 +23,10 @@ export default function Navbar() {
   const user = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
 
+  const clearServerSession = () => {
+    void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
+  };
+
   useEffect(() => {
     if (!mounted || !isLoggedIn) return;
 
@@ -31,6 +35,7 @@ export default function Navbar() {
     const resetInactivityTimer = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
+        clearServerSession();
         logout();
         router.push("/login");
       }, INACTIVITY_TIMEOUT_MS);
@@ -54,6 +59,7 @@ export default function Navbar() {
   }, [mounted, isLoggedIn, logout, router]);
 
   const handleLogout = () => {
+    clearServerSession();
     logout();
     router.push("/");
   };

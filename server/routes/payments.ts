@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { requireUserSessionFromRequest } from "@/server/auth/guards";
 import { getDb } from "@/server/db/connection";
 import type { CheckoutSession } from "@/lib/payment";
 
@@ -14,7 +15,6 @@ const orderItemSchema = z.object({
 });
 
 const createCheckoutSchema = z.object({
-  userEmail: z.string().email(),
   items: z.array(orderItemSchema).min(1, "Cart is empty"),
   subtotal: z.number().nonnegative(),
   deliveryFee: z.number().nonnegative(),
@@ -113,6 +113,9 @@ async function buildRazorpayCheckout(params: {
 
 export async function handleCreateCheckoutSession(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await requireUserSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     const body = await request.json();
     const parsed = createCheckoutSchema.safeParse(body);
 
@@ -123,7 +126,8 @@ export async function handleCreateCheckoutSession(request: NextRequest): Promise
       );
     }
 
-    const { userEmail, items, total } = parsed.data;
+    const { items, total } = parsed.data;
+    const userEmail = auth.session.user.email;
     const db = await getDb();
     const user = await db.collection("users").findOne({ email: userEmail });
 

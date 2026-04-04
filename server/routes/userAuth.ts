@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { createUserSession, createUserSessionSnapshot } from "@/server/auth/session";
+import { replaceUserSession } from "@/server/routes/authSession";
 import { getDb } from "@/server/db/connection";
 
 const loginSchema = z.object({
@@ -52,7 +54,7 @@ export async function handleUserLogin(request: NextRequest): Promise<NextRespons
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         email: user.email as string,
@@ -64,6 +66,20 @@ export async function handleUserLogin(request: NextRequest): Promise<NextRespons
         pincode: user.pincode as string,
       },
     });
+
+    return replaceUserSession(request, response, () =>
+      createUserSession(
+        createUserSessionSnapshot({
+          email: user.email as string,
+          fullName: user.fullName as string,
+          phone: user.phone as string,
+          address: user.address as string,
+          city: user.city as string,
+          state: user.state as string,
+          pincode: user.pincode as string,
+        }),
+      ),
+    );
   } catch (error) {
     console.error("[userAuth] Error:", error);
     return NextResponse.json(

@@ -4,10 +4,10 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { requireUserSessionFromRequest } from "@/server/auth/guards";
 import { getDb } from "@/server/db/connection";
 
 const updateSchema = z.object({
-  email: z.string().email(),
   fullName: z.string().min(2).optional(),
   phone: z.string().regex(/^[6-9]\d{9}$/).optional(),
   address: z.string().min(5).optional(),
@@ -17,13 +17,9 @@ const updateSchema = z.object({
 });
 
 export async function handleGetProfile(request: NextRequest): Promise<NextResponse> {
-  const email = request.nextUrl.searchParams.get("email");
-  if (!email) {
-    return NextResponse.json(
-      { success: false, message: "Email is required" },
-      { status: 400 }
-    );
-  }
+  const auth = await requireUserSessionFromRequest(request);
+  if (!auth.ok) return auth.response;
+  const email = auth.session.user.email;
 
   const db = await getDb();
   const user = await db.collection("users").findOne({ email });
@@ -40,6 +36,9 @@ export async function handleGetProfile(request: NextRequest): Promise<NextRespon
 
 export async function handleUpdateProfile(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await requireUserSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     const body = await request.json();
     const parsed = updateSchema.safeParse(body);
 
@@ -50,7 +49,8 @@ export async function handleUpdateProfile(request: NextRequest): Promise<NextRes
       );
     }
 
-    const { email, ...updates } = parsed.data;
+    const updates = parsed.data;
+    const email = auth.session.user.email;
 
     const db = await getDb();
     const collection = db.collection("users");
@@ -63,7 +63,7 @@ export async function handleUpdateProfile(request: NextRequest): Promise<NextRes
       );
     }
 
-    await collection.updateOne({ email }, { $set: updates });
+    await collection.updateOne({ email }, { $set: { ...updates, updatedAt: new Date().toISOString() } });
     const updated = await collection.findOne({ email });
 
     return NextResponse.json({ success: true, user: updated });

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import { z } from "zod";
+import { requireUserSessionFromRequest } from "@/server/auth/guards";
 import { getDb } from "@/server/db/connection";
 import { normalizeOrderPaymentSummary } from "@/lib/payment";
 
@@ -29,7 +30,6 @@ const paymentSchema = z.object({
 });
 
 const placeOrderSchema = z.object({
-  userEmail: z.string().email(),
   items: z.array(orderItemSchema).min(1, "Cart is empty"),
   subtotal: z.number().nonnegative(),
   deliveryFee: z.number().nonnegative(),
@@ -39,6 +39,9 @@ const placeOrderSchema = z.object({
 
 export async function handlePlaceOrder(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await requireUserSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     const body = await request.json();
     const parsed = placeOrderSchema.safeParse(body);
 
@@ -49,7 +52,8 @@ export async function handlePlaceOrder(request: NextRequest): Promise<NextRespon
       );
     }
 
-    const { userEmail, items, subtotal, deliveryFee, total, payment } = parsed.data;
+    const { items, subtotal, deliveryFee, total, payment } = parsed.data;
+    const userEmail = auth.session.user.email;
 
     if (payment.provider === "razorpay") {
       const secret = process.env.RAZORPAY_KEY_SECRET;
@@ -131,15 +135,9 @@ export async function handlePlaceOrder(request: NextRequest): Promise<NextRespon
 
 export async function handleGetUserOrders(request: NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
-
-    if (!email) {
-      return NextResponse.json(
-        { success: false, message: "Email is required." },
-        { status: 400 }
-      );
-    }
+    const auth = await requireUserSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+    const email = auth.session.user.email;
 
     const db = await getDb();
     const raw = await db

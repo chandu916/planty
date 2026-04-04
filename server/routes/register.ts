@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { createUserSession, createUserSessionSnapshot } from "@/server/auth/session";
+import { replaceUserSession } from "@/server/routes/authSession";
 import { getDb } from "@/server/db/connection";
 
 const registrationSchema = z.object({
@@ -45,7 +47,7 @@ export async function handleRegister(request: NextRequest): Promise<NextResponse
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    await collection.insertOne({
+    const user = {
       fullName,
       email,
       passwordHash,
@@ -56,11 +58,21 @@ export async function handleRegister(request: NextRequest): Promise<NextResponse
       pincode,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    });
+    };
 
-    return NextResponse.json(
-      { success: true, message: "Registration successful! We'll deliver to your address." },
-      { status: 201 }
+    await collection.insertOne(user);
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Registration successful! We'll deliver to your address.",
+        user: createUserSessionSnapshot(user),
+      },
+      { status: 201 },
+    );
+
+    return replaceUserSession(request, response, () =>
+      createUserSession(createUserSessionSnapshot(user)),
     );
   } catch (error) {
     console.error("[register] Error:", error);

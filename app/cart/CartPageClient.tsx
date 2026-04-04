@@ -72,7 +72,7 @@ export default function CartPageClient() {
   useEffect(() => {
     if (!userEmail || cartLoadedRef.current) return;
     cartLoadedRef.current = true;
-    fetch(`/api/cart?email=${encodeURIComponent(userEmail)}`)
+    fetch("/api/cart")
       .then((r) => r.json())
       .then((json) => {
         if (json.success && json.items?.length > 0) {
@@ -96,7 +96,7 @@ export default function CartPageClient() {
       fetch("/api/cart", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, items: useCartStore.getState().items }),
+        body: JSON.stringify({ items: useCartStore.getState().items }),
       }).catch(() => {/* silent */});
     }, 800);
     return () => {
@@ -135,7 +135,7 @@ export default function CartPageClient() {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, items, subtotal, deliveryFee, total, payment }),
+        body: JSON.stringify({ items, subtotal, deliveryFee, total, payment }),
       });
       const json = await res.json();
       if (json.success) {
@@ -144,7 +144,7 @@ export default function CartPageClient() {
         setOrderId(json.orderId);
         setCheckedOut(true);
         clearCart();
-        fetch(`/api/cart?email=${encodeURIComponent(userEmail)}`, { method: "DELETE" })
+        fetch("/api/cart", { method: "DELETE" })
           .catch(() => {/* silent */});
       } else {
         setOrderError(json.message || "Failed to place order. Please try again.");
@@ -220,7 +220,7 @@ export default function CartPageClient() {
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, items, subtotal, deliveryFee, total }),
+        body: JSON.stringify({ items, subtotal, deliveryFee, total }),
       });
       const json = await res.json();
 

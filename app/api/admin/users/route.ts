@@ -3,5 +3,8 @@
  * All business logic lives in server/routes/adminUsers.ts
  */
 import { handleGetAllUsers } from "@/server/routes/adminUsers";
+import type { NextRequest } from "next/server";
 
-export const GET = () => handleGetAllUsers();
+export const dynamic = "force-dynamic";
+
+export const GET = (request: NextRequest) => handleGetAllUsers(request);

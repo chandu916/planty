@@ -112,9 +112,16 @@ const DELIVERY_STEPS: Array<{ value: string; label: string }> = [
   { value: "delivered",        label: "Delivered" },
 ];
 
-export default function AdminDashboardClient({ initialUsers }: { initialUsers: AdminUser[] }) {
+export default function AdminDashboardClient({
+  initialUsers,
+  initialAdmin,
+}: {
+  initialUsers: AdminUser[];
+  initialAdmin: { email: string; name: string; role: string };
+}) {
   const router = useRouter();
-  const { isLoggedIn, admin, logout } = useAdminStore();
+  const { isLoggedIn, admin, logout, login } = useAdminStore();
+  const hasActiveSession = isLoggedIn || !!initialAdmin;
 
   const [tab, setTab] = useState<Tab>("orders");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -129,10 +136,14 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!isLoggedIn) {
+    login(initialAdmin);
+  }, [initialAdmin, login]);
+
+  useEffect(() => {
+    if (!hasActiveSession) {
       router.push("/login");
     }
-  }, [isLoggedIn, router]);
+  }, [hasActiveSession, router]);
 
   const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
@@ -146,8 +157,8 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   }, []);
 
   useEffect(() => {
-    if (isLoggedIn) fetchOrders();
-  }, [isLoggedIn, fetchOrders]);
+    if (hasActiveSession) fetchOrders();
+  }, [hasActiveSession, fetchOrders]);
 
   const handleUpdateStatus = async (
     orderId: string,
@@ -176,6 +187,7 @@ export default function AdminDashboardClient({ initialUsers }: { initialUsers: A
   };
 
   const handleLogout = () => {
+    void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
     logout();
     router.push("/login");
   };

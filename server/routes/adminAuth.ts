@@ -5,6 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { createAdminSession, createAdminSessionSnapshot } from "@/server/auth/session";
+import { replaceAdminSession } from "@/server/routes/authSession";
 import { getDb } from "@/server/db/connection";
 
 const loginSchema = z.object({
@@ -57,7 +59,7 @@ export async function handleAdminLogin(request: NextRequest): Promise<NextRespon
       { $set: { lastLoginAt: new Date().toISOString() } }
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       admin: {
         email: admin.email as string,
@@ -65,6 +67,16 @@ export async function handleAdminLogin(request: NextRequest): Promise<NextRespon
         role: admin.role as string,
       },
     });
+
+    return replaceAdminSession(request, response, () =>
+      createAdminSession(
+        createAdminSessionSnapshot({
+          email: admin.email as string,
+          name: admin.name as string,
+          role: admin.role as string,
+        }),
+      ),
+    );
   } catch (error) {
     console.error("[adminAuth] Error:", error);
     return NextResponse.json(

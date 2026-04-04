@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { getDb } from "@/lib/mongodb";
 import type { Metadata } from "next";
+import { getAdminSessionFromCookieStore } from "@/server/auth/guards";
 import AdminDashboardClient from "./AdminDashboardClient";
 
 export const metadata: Metadata = {
@@ -10,6 +13,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  const admin = await getAdminSessionFromCookieStore(await cookies());
+  if (!admin) {
+    redirect("/login");
+  }
+
   const database = await getDb();
   const raw = await database
     .collection("users")
@@ -30,5 +38,5 @@ export default async function AdminPage() {
     createdAt: u.createdAt as string,
   }));
 
-  return <AdminDashboardClient initialUsers={allUsers} />;
+  return <AdminDashboardClient initialUsers={allUsers} initialAdmin={admin} />;
 }

@@ -6,6 +6,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { requireUserSessionFromRequest } from "@/server/auth/guards";
 import { getDb } from "@/server/db/connection";
 
 const cartItemSchema = z.object({
@@ -18,16 +19,13 @@ const cartItemSchema = z.object({
 });
 
 const saveCartSchema = z.object({
-  userEmail: z.string().email(),
   items: z.array(cartItemSchema),
 });
 
 export async function handleGetCart(request: NextRequest): Promise<NextResponse> {
-  const { searchParams } = new URL(request.url);
-  const email = searchParams.get("email");
-  if (!email) {
-    return NextResponse.json({ success: false, message: "Email is required." }, { status: 400 });
-  }
+  const auth = await requireUserSessionFromRequest(request);
+  if (!auth.ok) return auth.response;
+  const email = auth.session.user.email;
 
   try {
     const db = await getDb();
@@ -41,6 +39,9 @@ export async function handleGetCart(request: NextRequest): Promise<NextResponse>
 
 export async function handleSaveCart(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await requireUserSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     const body = await request.json();
     const parsed = saveCartSchema.safeParse(body);
     if (!parsed.success) {
@@ -50,7 +51,8 @@ export async function handleSaveCart(request: NextRequest): Promise<NextResponse
       );
     }
 
-    const { userEmail, items } = parsed.data;
+    const { items } = parsed.data;
+    const userEmail = auth.session.user.email;
     const db = await getDb();
     await db.collection("carts").updateOne(
       { userEmail },
@@ -65,11 +67,9 @@ export async function handleSaveCart(request: NextRequest): Promise<NextResponse
 }
 
 export async function handleClearCart(request: NextRequest): Promise<NextResponse> {
-  const { searchParams } = new URL(request.url);
-  const email = searchParams.get("email");
-  if (!email) {
-    return NextResponse.json({ success: false, message: "Email is required." }, { status: 400 });
-  }
+  const auth = await requireUserSessionFromRequest(request);
+  if (!auth.ok) return auth.response;
+  const email = auth.session.user.email;
 
   try {
     const db = await getDb();

@@ -5,5 +5,7 @@
 import { NextRequest } from "next/server";
 import { handleGetProfile, handleUpdateProfile } from "@/server/routes/profile";
 
+export const dynamic = "force-dynamic";
+
 export const GET = (req: NextRequest) => handleGetProfile(req);
 export const PUT = (req: NextRequest) => handleUpdateProfile(req);

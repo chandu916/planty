@@ -174,6 +174,12 @@ export default function LoginPageClient() {
             </motion.button>
           </form>
 
+          <div className="mt-4 text-center text-sm text-green-300/50">
+            <Link href="/forgot-password" className="text-green-400 hover:text-green-300 font-medium transition-colors">
+              Forgot password?
+            </Link>
+          </div>
+
           <div className="mt-6 text-center text-sm text-green-300/50">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="text-green-400 hover:text-green-300 font-medium transition-colors">

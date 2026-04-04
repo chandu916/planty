@@ -6,11 +6,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { ObjectId } from "mongodb";
+import { requireAdminSessionFromRequest } from "@/server/auth/guards";
 import { getDb } from "@/server/db/connection";
 import { normalizeOrderPaymentSummary } from "@/lib/payment";
 
-export async function handleGetAllOrders(): Promise<NextResponse> {
+export async function handleGetAllOrders(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await requireAdminSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     const db = await getDb();
     const raw = await db
       .collection("orders")
@@ -66,6 +70,9 @@ export async function handleUpdateOrderStatus(
   id: string
 ): Promise<NextResponse> {
   try {
+    const auth = await requireAdminSessionFromRequest(request);
+    if (!auth.ok) return auth.response;
+
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ success: false, message: "Invalid order ID." }, { status: 400 });
     }

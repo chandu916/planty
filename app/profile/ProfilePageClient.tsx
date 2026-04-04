@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/lib/userStore";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useForm } from "react-hook-form";
@@ -126,11 +127,24 @@ function inputClass(hasError: boolean) {
   ].join(" ");
 }
 
-export default function ProfilePageClient() {
+type ProfileInitialUser = {
+  email: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+};
+
+export default function ProfilePageClient({ initialUser }: { initialUser: ProfileInitialUser }) {
+  const router = useRouter();
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const loggedInUser = useUserStore((s) => s.user);
   const logout = useUserStore((s) => s.logout);
+  const login = useUserStore((s) => s.login);
   const updateLoggedInUser = useUserStore((s) => s.updateUser);
+  const hasActiveSession = isLoggedIn || !!initialUser;
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -159,10 +173,10 @@ export default function ProfilePageClient() {
     formState: { errors },
   } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
 
-  const fetchOrders = useCallback(async (em: string) => {
+  const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
     try {
-      const res = await fetch(`/api/orders?email=${encodeURIComponent(em)}`);
+      const res = await fetch("/api/orders");
       const json = await res.json();
       if (json.success) setOrders(json.orders);
     } finally {
@@ -170,11 +184,11 @@ export default function ProfilePageClient() {
     }
   }, []);
 
-  const fetchUser = useCallback(async (em: string) => {
+  const fetchUser = useCallback(async () => {
     setLoading(true);
     setFetchError("");
     try {
-      const res = await fetch(`/api/profile?email=${encodeURIComponent(em)}`);
+      const res = await fetch("/api/profile");
       const json = await res.json();
       if (json.success) {
         setUser(json.user);
@@ -186,7 +200,7 @@ export default function ProfilePageClient() {
           state: json.user.state,
           pincode: json.user.pincode,
         });
-        await fetchOrders(em);
+        await fetchOrders();
       } else {
         setFetchError(json.message || "User not found. Please register first.");
       }
@@ -199,7 +213,6 @@ export default function ProfilePageClient() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     if (newPassword !== confirmNewPassword) {
       setPwError("New passwords do not match.");
       setPwStatus("error");
@@ -212,7 +225,7 @@ export default function ProfilePageClient() {
       const res = await fetch("/api/profile/password", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, currentPassword, newPassword }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
       const json = await res.json();
       if (json.success) {
@@ -221,7 +234,11 @@ export default function ProfilePageClient() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
-        setTimeout(() => { setPwStatus("idle"); setShowPasswordSection(false); }, 2000);
+        setTimeout(() => {
+          void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
+          logout();
+          router.push("/login");
+        }, 1200);
       } else {
         setPwError(json.message || "Failed to update password.");
         setPwStatus("error");
@@ -235,7 +252,13 @@ export default function ProfilePageClient() {
   };
 
   useEffect(() => {
-    if (!isLoggedIn || !loggedInUser?.email) {
+    login(initialUser);
+  }, [initialUser, login]);
+
+  useEffect(() => {
+    const email = loggedInUser?.email ?? initialUser.email;
+
+    if (!hasActiveSession || !email) {
       setUser(null);
       setOrders([]);
       setFetchError("");
@@ -243,8 +266,8 @@ export default function ProfilePageClient() {
       return;
     }
 
-    void fetchUser(loggedInUser.email);
-  }, [fetchUser, isLoggedIn, loggedInUser?.email]);
+    void fetchUser();
+  }, [fetchUser, hasActiveSession, initialUser.email, loggedInUser?.email]);
 
   const onSave = async (data: EditForm) => {
     if (!user) return;
@@ -253,7 +276,7 @@ export default function ProfilePageClient() {
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, ...data }),
+        body: JSON.stringify(data),
       });
       const json = await res.json();
       if (json.success) {
@@ -304,7 +327,7 @@ export default function ProfilePageClient() {
           </h1>
         </motion.div>
 
-        {!isLoggedIn ? (
+        {!hasActiveSession ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -589,10 +612,12 @@ export default function ProfilePageClient() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => {
+                      void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
                       logout();
                       setUser(null);
                       setOrders([]);
                       setShowPasswordSection(false);
+                      router.push("/");
                     }}
                     className="w-full py-3 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 text-sm font-medium transition-all flex items-center justify-center gap-2"
                   >
