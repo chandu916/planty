@@ -7,16 +7,54 @@ import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } 
 import { useCartStore } from "@/lib/cartStore";
 import { useUserStore } from "@/lib/userStore";
 import { plantCategories, searchPlantCatalog } from "@/lib/plants";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 const emptySubscribe = () => () => {};
 
 const NAV_LINKS = [
   { label: "Plants", href: "/#plants" },
-  { label: "Categories", href: "/#plants" },
-  { label: "About", href: "/#about" },
-];
+  { label: "About", href: "/about" },
+] as const;
+
+const CATEGORY_MENU_ITEMS = [
+  {
+    label: "Seed Growing",
+    href: "/search?q=seed%20growing",
+    emoji: "🌱",
+    description: "Starter trays, young greens, and fresh plant beginnings.",
+  },
+  {
+    label: "Grafting",
+    href: "/search?q=grafting",
+    emoji: "✂️",
+    description: "Curated plants and picks for stronger, healthier propagation.",
+  },
+  {
+    label: "Bonsai Collection",
+    href: "/plants/bonsai",
+    emoji: "🌳",
+    description: "Miniature trees shaped with patience and long-form care.",
+  },
+  {
+    label: "Flowering Plants",
+    href: "/plants/flowering",
+    emoji: "🌸",
+    description: "Bloom-rich plants for color, fragrance, and soft texture.",
+  },
+  {
+    label: "Indoor Greens",
+    href: "/plants/indoor",
+    emoji: "🌿",
+    description: "Lush foliage picks that thrive inside modern living spaces.",
+  },
+  {
+    label: "Herbs & Edibles",
+    href: "/plants/herbs",
+    emoji: "🌿",
+    description: "Kitchen-ready herbs and aromatic edible plant favorites.",
+  },
+] as const;
 
 const PROFILE_OPTIONS = [
   { label: "My Profile", href: "/profile", icon: UserCircle2, accent: "text-green-200" },
@@ -36,7 +74,6 @@ const SEARCH_TABS = [
 export default function Navbar() {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const router = useRouter();
-  const pathname = usePathname();
 
   // Only read Zustand stores after hydration to avoid SSR mismatch
   const totalQty = useCartStore((s) =>
@@ -47,6 +84,7 @@ export default function Navbar() {
   const logout = useUserStore((s) => s.logout);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [categoriesMenuOpen, setCategoriesMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [searchTab, setSearchTab] = useState<(typeof SEARCH_TABS)[number]["id"]>("all");
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -77,11 +115,6 @@ export default function Navbar() {
     activeSuggestionIndex >= 0 && activeSuggestionIndex < searchMatches.length
       ? activeSuggestionIndex
       : -1;
-
-  const resolvedNavLinks = useMemo(() => {
-    if (pathname === "/") return NAV_LINKS.map((link) => ({ ...link, href: link.href.replace(/^\//, "") }));
-    return NAV_LINKS;
-  }, [pathname]);
 
   const clearServerSession = () => {
     void fetch("/api/auth/session", { method: "POST", credentials: "include" }).catch(() => undefined);
@@ -196,15 +229,66 @@ export default function Navbar() {
         </Link>
 
         <div className="ml-2 hidden shrink-0 items-center gap-5 xl:flex">
-          {resolvedNavLinks.map((item) => (
-            <motion.a
-              key={item.label}
-              href={item.href}
+          <div
+            className="relative"
+            onMouseEnter={() => setCategoriesMenuOpen(true)}
+            onMouseLeave={() => setCategoriesMenuOpen(false)}
+          >
+            <motion.button
+              type="button"
+              onClick={() => setCategoriesMenuOpen((open) => !open)}
               whileHover={{ color: "#86efac", y: -2 }}
-              className="text-sm font-medium text-green-100/75 transition-colors hover:text-green-300"
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-green-100/80 transition-colors hover:text-green-300"
+              aria-expanded={categoriesMenuOpen}
+              aria-haspopup="menu"
             >
-              {item.label}
-            </motion.a>
+              Categories
+              <ChevronDown size={15} className={`transition ${categoriesMenuOpen ? "rotate-180" : ""}`} />
+            </motion.button>
+
+            <AnimatePresence>
+              {categoriesMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute left-0 top-[calc(100%+14px)] z-50 w-[22rem] overflow-hidden rounded-[28px] border border-white/10 bg-[#07110d]/95 p-2 shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+                >
+                  <div className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-green-200/35">
+                    Plant Categories
+                  </div>
+                  <div className="space-y-1">
+                    {CATEGORY_MENU_ITEMS.map((item) => (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setCategoriesMenuOpen(false)}
+                        className="flex items-start gap-3 rounded-[22px] px-3 py-3 transition hover:bg-white/5"
+                      >
+                        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-lg">
+                          {item.emoji}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold text-white">{item.label}</span>
+                          <span className="mt-1 block text-xs leading-relaxed text-green-100/45">{item.description}</span>
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {NAV_LINKS.map((item) => (
+            <Link key={item.label} href={item.href}>
+              <motion.span
+                whileHover={{ color: "#86efac", y: -2 }}
+                className="block text-sm font-medium text-green-100/75 transition-colors hover:text-green-300"
+              >
+                {item.label}
+              </motion.span>
+            </Link>
           ))}
         </div>
 

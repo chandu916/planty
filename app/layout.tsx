@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthSessionSync from "./components/AuthSessionSync";
 import GlobalBackground from "./components/GlobalBackground";
 import GlobalClickEffects from "./components/GlobalClickEffects";
+import PageTransition from "./components/PageTransition";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,7 +27,7 @@ export default function RootLayout({
         <GlobalBackground />
         <GlobalClickEffects />
         <AuthSessionSync />
-        <div className="relative z-10">{children}</div>
+        <PageTransition>{children}</PageTransition>
       </body>
     </html>
   );
